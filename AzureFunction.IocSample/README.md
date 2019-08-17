@@ -1,4 +1,4 @@
-# dotvvm-samples-azurefunctions
+#  template or samples for azurefunctions using IOC
   working Sample which demonstrates how dependency injection or IOC works in azure function
    the sample uses azure function 2.0
    

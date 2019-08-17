@@ -1,4 +1,4 @@
-#  template / sample for using IOC in azurefunctions
+#  Template / Sample for using IOC in azurefunctions
   working Sample which demonstrates how dependency injection or IOC works in azure function
    the sample uses azure function 2.0
    

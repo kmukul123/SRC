@@ -33,7 +33,7 @@ namespace OutlookRemindersOntop
 {url}
 The site should open in your browser", "Expired:");
                 //Environment.Exit(1);
-                return;
+                //return;
             }
             toolStripStatusLabel1.Spring = true;
             statusStrip1.LayoutStyle = ToolStripLayoutStyle.Flow;

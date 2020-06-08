@@ -15,6 +15,7 @@ namespace OutlookRemindersOntop
     public partial class OutlookRemindersOnTop : Form
     {
         WindowWatcher windowWatcher;
+        ActivitySimulator activitySimulator;
         Random random = new Random();
         public OutlookRemindersOnTop()
         {
@@ -40,7 +41,9 @@ The site should open in your browser", "Expired:");
 
             Logger.notifyError = this.NotifyMessage;
             windowWatcher = new WindowWatcher();
+            activitySimulator = new ActivitySimulator(textBoxHours.Text);
             notifyIcon1.Icon = SystemIcons.Application;
+            this.checkBoxstartup.Hide();
 
             windowWatcher.WindowFoundHandler += WindowWatcher_WindowFoundHandler;
             toolTip1.SetToolTip(donateButton, "please support us and donate for a coffee\nPart of your donations are also donated to charity\nThanks");
@@ -143,6 +146,7 @@ The site should open in your browser", "Expired:");
 
         private void CheckBoxstartup_CheckedChanged(object sender, EventArgs e)
         {
+            return;
             const string ApplicationName = "OutlookRemindersOnTop";
             RegistryKey rk = Registry.CurrentUser.OpenSubKey
             ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
@@ -165,5 +169,9 @@ The site should open in your browser", "Expired:");
                 return false;
         }
 
+        private void checkBoxMonitor_CheckedChanged(object sender, EventArgs e)
+        {
+            this.activitySimulator.timerEnabled = checkBoxMonitor.Checked;
+        }
     }
 }

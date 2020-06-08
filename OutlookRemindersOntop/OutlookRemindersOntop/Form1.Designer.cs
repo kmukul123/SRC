@@ -36,6 +36,9 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.checkBoxstartup = new System.Windows.Forms.CheckBox();
+            this.checkBoxMonitor = new System.Windows.Forms.CheckBox();
+            this.textBoxHours = new System.Windows.Forms.TextBox();
+            this.labelhours = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -97,11 +100,43 @@
             this.checkBoxstartup.UseVisualStyleBackColor = true;
             this.checkBoxstartup.CheckedChanged += new System.EventHandler(this.CheckBoxstartup_CheckedChanged);
             // 
+            // checkBoxMonitor
+            // 
+            this.checkBoxMonitor.AutoSize = true;
+            this.checkBoxMonitor.Location = new System.Drawing.Point(23, 136);
+            this.checkBoxMonitor.Name = "checkBoxMonitor";
+            this.checkBoxMonitor.Size = new System.Drawing.Size(82, 17);
+            this.checkBoxMonitor.TabIndex = 5;
+            this.checkBoxMonitor.Text = "monitor until";
+            this.checkBoxMonitor.UseVisualStyleBackColor = true;
+            this.checkBoxMonitor.CheckedChanged += new System.EventHandler(this.checkBoxMonitor_CheckedChanged);
+            // 
+            // textBoxHours
+            // 
+            this.textBoxHours.Location = new System.Drawing.Point(112, 136);
+            this.textBoxHours.MaxLength = 2;
+            this.textBoxHours.Name = "textBoxHours";
+            this.textBoxHours.Size = new System.Drawing.Size(43, 20);
+            this.textBoxHours.TabIndex = 6;
+            this.textBoxHours.Text = "17";
+            // 
+            // labelhours
+            // 
+            this.labelhours.AutoSize = true;
+            this.labelhours.Location = new System.Drawing.Point(161, 140);
+            this.labelhours.Name = "labelhours";
+            this.labelhours.Size = new System.Drawing.Size(33, 13);
+            this.labelhours.TabIndex = 7;
+            this.labelhours.Text = "hours";
+            // 
             // OutlookRemindersOnTop
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(494, 357);
+            this.Controls.Add(this.labelhours);
+            this.Controls.Add(this.textBoxHours);
+            this.Controls.Add(this.checkBoxMonitor);
             this.Controls.Add(this.checkBoxstartup);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.donateButton);
@@ -126,6 +161,9 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.CheckBox checkBoxstartup;
+        private System.Windows.Forms.CheckBox checkBoxMonitor;
+        private System.Windows.Forms.TextBox textBoxHours;
+        private System.Windows.Forms.Label labelhours;
     }
 }
 

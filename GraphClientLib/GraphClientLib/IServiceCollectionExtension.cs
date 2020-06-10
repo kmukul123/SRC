@@ -5,8 +5,10 @@ using Polly;
 using Polly.Extensions.Http;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
+[assembly: InternalsVisibleTo("GraphClientLibTest")]
 namespace GraphClientLib
 {
     public static class IServiceCollectionExtension
@@ -21,6 +23,7 @@ namespace GraphClientLib
             });
             services.AddTransient<IAuthenticationProvider, GraphAuthenticationProvider>();
             services.AddTransient<IGraphServiceClient, GraphServiceClient>();
+            services.AddTransient<IGraphHelper, UserGraphHelper>();
             services.AddHttpClient("RestClient")
                     .AddPolicyHandler((serviceProvider, request) => HttpPolicyExtensions.HandleTransientHttpError()
                             .WaitAndRetryAsync(new[]

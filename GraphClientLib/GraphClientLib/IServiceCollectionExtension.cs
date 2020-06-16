@@ -23,7 +23,7 @@ namespace GraphClientLib
             });
             services.AddTransient<IAuthenticationProvider, GraphAuthenticationProvider>();
             services.AddTransient<IGraphServiceClient, GraphServiceClient>();
-            services.AddTransient<IGraphHelper, UserGraphHelper>();
+            services.AddTransient<IGraphUserHelper, GraphUserHelper>();
             services.AddHttpClient("RestClient")
                     .AddPolicyHandler((serviceProvider, request) => HttpPolicyExtensions.HandleTransientHttpError()
                             .WaitAndRetryAsync(new[]

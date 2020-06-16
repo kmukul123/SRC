@@ -11,12 +11,12 @@ namespace GraphClientLib
     using System.Threading.Tasks;
 
 
-    public class UserGraphHelper : IGraphHelper
+    public class GraphUserHelper : IGraphUserHelper
     {
         private GraphServiceClient graphClient;
-        private readonly ILogger<UserGraphHelper> logger;
+        private readonly ILogger<GraphUserHelper> logger;
 
-        public UserGraphHelper(IAuthenticationProvider authProvider, ILogger<UserGraphHelper> logger)
+        public GraphUserHelper(IAuthenticationProvider authProvider, ILogger<GraphUserHelper> logger)
         {
             graphClient = new GraphServiceClient(authProvider);
             this.logger = logger;

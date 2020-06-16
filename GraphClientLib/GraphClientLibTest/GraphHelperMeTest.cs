@@ -9,7 +9,7 @@ namespace GraphClientLibTest
 {
     public class GraphHelperMeTest : IClassFixture<GraphHelperMeFixture>
     {
-        private IGraphHelper graphClient { get; }
+        private IGraphUserHelper graphClient { get; }
 
         public GraphHelperMeTest(GraphHelperMeFixture graphClientFixture)
         {

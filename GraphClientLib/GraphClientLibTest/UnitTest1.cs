@@ -30,7 +30,7 @@ namespace GraphClientLibTest
             Assert.NotNull(factory);
             var authProvider = serviceProvider.GetService<IAuthenticationProvider>();
             Assert.NotNull(authProvider);
-            var graphHelper = serviceProvider.GetService<IGraphHelper>();
+            var graphHelper = serviceProvider.GetService<IGraphUserHelper>();
             Assert.NotNull(graphHelper);
             //GraphClientLib.Class1 c = null;
 

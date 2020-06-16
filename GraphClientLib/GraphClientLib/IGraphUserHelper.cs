@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace GraphClientLib
 {
-    public interface IGraphHelper
+    public interface IGraphUserHelper
     {
         Task<IGraphServiceUsersCollectionPage> GetUsersPagedAsync();
     }

@@ -12,7 +12,8 @@ namespace GraphClientLibTest
 {
     public class GraphHelperMeFixture : IDisposable
     {
-        public IGraphUserHelper meGraphHelper { get; set; }
+        public IGraphUserHelper graphUserHelper { get; set; }
+        public IGraphDriveHelper graphDriveHelper { get; set; }
         public GraphHelperMeFixture()
         {
             var config = LoadTestConfiguration();
@@ -22,9 +23,10 @@ namespace GraphClientLibTest
             Assert.NotNull(factory);
             var authProvider = diServieProvider.GetService<IAuthenticationProvider>();
             Assert.NotNull(authProvider);
-            meGraphHelper = diServieProvider.GetService<IGraphUserHelper>();
-            Assert.NotNull(meGraphHelper);
-
+            graphUserHelper = diServieProvider.GetService<IGraphUserHelper>();
+            Assert.NotNull(graphUserHelper);
+            graphDriveHelper = diServieProvider.GetService<IGraphDriveHelper>();
+            Assert.NotNull(graphDriveHelper);
         }
 
         private ServiceProvider GetDIServiceProvider(IConfiguration config)

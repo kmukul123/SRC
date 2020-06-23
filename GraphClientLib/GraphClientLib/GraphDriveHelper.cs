@@ -15,6 +15,7 @@ namespace GraphClientLib
         private bool _inited;
         private int _pagesize;
         private string _token;
+        private object lockObject;
 
         public GraphDriveHelper(IAuthenticationProvider authProvider, ILogger<GraphUserHelper> logger)
         {
@@ -45,10 +46,10 @@ namespace GraphClientLib
             _inited = true;
             IDriveItemDeltaCollectionPage deltaCollection
                    = await _graphClient.Sites.Root.Drive.Root.
-                Delta(String.IsNullOrEmpty(token)? null: token).
+                Delta(String.IsNullOrEmpty(token) ? null : token).
                 Request().
                 GetAsync(); ;
-            
+
 
             if (deltaCollection.CurrentPage.Count <= 0)
             {
@@ -64,8 +65,9 @@ namespace GraphClientLib
                     morePagesAvailable = deltaCollection.NextPageRequest != null;
                     foreach (var driveItem in deltaCollection.CurrentPage)
                     {
-                        if (ProcessDriveChange!=null)
+                        if (ProcessDriveChange != null)
                             await ProcessDriveChange(driveItem);
+                        _logger.LogInformation("processed driveitem : {driveItem}");
                     }
 
                     if (morePagesAvailable)
@@ -84,7 +86,7 @@ namespace GraphClientLib
 
             var deltauri = new Uri(deltalink);
             var queries = System.Web.HttpUtility.ParseQueryString(deltauri.Query);
-            _token = queries.Get("$deltatoken");
+            _token = queries.Get("token");
 
             if (ProcessToken != null)
                 await (ProcessToken(token));
@@ -132,7 +134,7 @@ namespace GraphClientLib
 
                 // Once we've iterated through all of the pages, there should
                 // be a delta link, which is used to request all changes since our last query
-                _deltaLink = deltaCollection.AdditionalData["@odata.deltaLink"].ToString();
+                var _deltaLink = deltaCollection.AdditionalData["@odata.deltaLink"].ToString();
                 if (!string.IsNullOrEmpty(_deltaLink))
                 {
                     Console.WriteLine($"Processed current delta. Will check back in {pollInterval} seconds.");

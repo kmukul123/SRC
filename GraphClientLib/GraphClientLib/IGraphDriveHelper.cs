@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GraphClientLib
 {
-    internal interface IGraphDriveHelper
+    public interface IGraphDriveHelper
     {
         Task<bool> ProcessAllDriveItems();
         Func<string, Task> ProcessToken { get; set; }

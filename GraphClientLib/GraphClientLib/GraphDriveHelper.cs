@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.Graph.Constants;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GraphClientLib
 {
@@ -66,7 +68,12 @@ namespace GraphClientLib
                     foreach (var driveItem in deltaCollection.CurrentPage)
                     {
                         if (ProcessDriveChange != null)
-                            await ProcessDriveChange(driveItem);
+                            try
+                            {
+                                await ProcessDriveChange(driveItem);
+                            } catch (Exception ex) {
+                                _logger.LogWarning(ex.ToString());
+                            }
                         _logger.LogInformation("processed driveitem : {driveItem}");
                     }
 
@@ -89,7 +96,14 @@ namespace GraphClientLib
             _token = queries.Get("token");
 
             if (ProcessToken != null)
-                await (ProcessToken(token));
+                try
+                {
+                    await (ProcessToken(token));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex.ToString());
+                }
             return true;
         }
 

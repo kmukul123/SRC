@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,11 +29,22 @@ namespace OutlookRemindersOntop
 
         private void idlechecktimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            var idletime = Win32Helper.GetIdleTimeInSecs();
-            if (timerEnabled && DateTime.Now.Hour <= simulateActivityUntilHours)
+            try
             {
-                if (idletime >= timerInterval.TotalSeconds -1)
-                    SendKeys.SendWait("^{ESC}");
+                this.timer.Stop();
+                var idletime = Win32Helper.GetIdleTimeInSecs();
+                if (timerEnabled && DateTime.Now.Hour <= simulateActivityUntilHours)
+                {
+                    if (idletime >= timerInterval.TotalSeconds - 1)
+                        SendKeys.SendWait("^{ESC}");
+                }
+            } catch (Exception ex)
+            {
+                Trace.TraceError("exception in activity timer " + ex);
+            }
+            finally
+            {
+                this.timer.Start();
             }
         }
 

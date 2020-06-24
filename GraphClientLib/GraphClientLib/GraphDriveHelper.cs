@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 using static Microsoft.Graph.Constants;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.IO;
 
 namespace GraphClientLib
 {
     class GraphDriveHelper : IGraphDriveHelper
     {
-        private GraphServiceClient _graphClient;
+        internal GraphServiceClient _graphClient;
         private readonly ILogger<GraphUserHelper> _logger;
         private bool _inited;
         private int _pagesize;
@@ -43,7 +44,7 @@ namespace GraphClientLib
         /// todo : add a way to get next page while current page is being processed
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> ProcessAllDriveItems()
+        public async Task<int> ProcessAllDriveItems()
         {
             _inited = true;
             IDriveItemDeltaCollectionPage deltaCollection
@@ -56,35 +57,38 @@ namespace GraphClientLib
             if (deltaCollection.CurrentPage.Count <= 0)
             {
                 _logger.LogInformation("No changes...");
-                return false;
+                return 0;
             }
-            else
-            {
-                bool morePagesAvailable = false;
-                do
-                {
-                    // If there is a NextPageRequest, there are more pages
-                    morePagesAvailable = deltaCollection.NextPageRequest != null;
-                    foreach (var driveItem in deltaCollection.CurrentPage)
-                    {
-                        if (ProcessDriveChange != null)
-                            try
-                            {
-                                await ProcessDriveChange(driveItem);
-                            } catch (Exception ex) {
-                                _logger.LogWarning(ex.ToString());
-                            }
-                        _logger.LogInformation("processed driveitem : {driveItem}");
-                    }
 
-                    if (morePagesAvailable)
-                    {
-                        // Get the next page of results
-                        deltaCollection = await deltaCollection.NextPageRequest.GetAsync();
-                    }
+            bool morePagesAvailable = false;
+            var count = 0;
+            do
+            {
+                // If there is a NextPageRequest, there are more pages
+                morePagesAvailable = deltaCollection.NextPageRequest != null;
+                foreach (var driveItem in deltaCollection.CurrentPage)
+                {
+                    count++;
+                    if (ProcessDriveChange != null)
+                        try
+                        {
+                            await ProcessDriveChange(driveItem);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex.ToString());
+                        }
+                    _logger.LogInformation("processed driveitem : {driveItem}");
                 }
-                while (morePagesAvailable);
+
+                if (morePagesAvailable)
+                {
+                    // Get the next page of results
+                    deltaCollection = await deltaCollection.NextPageRequest.GetAsync();
+                }
             }
+            while (morePagesAvailable);
+
 
             // Once we've iterated through all of the pages, there should
             // be a delta link, which is used to request all changes since our last query
@@ -104,9 +108,20 @@ namespace GraphClientLib
                 {
                     _logger.LogWarning(ex.ToString());
                 }
-            return true;
+            return count;
         }
 
+        public async Task<DriveItem> UploadSmallFile(DriveItem parent, Stream stream, string fileName)
+        {
+            var createdFile = await _graphClient
+                        .Drives[parent.ParentReference.DriveId]
+                        .Items[parent.Id]
+                        .ItemWithPath(fileName)
+                        .Content
+                        .Request()
+                        .PutAsync<DriveItem>(stream);
+            return createdFile;
+        }
         //original code copies from msdn
         private async Task WatchMailFoldersTest(int pollInterval)
         {

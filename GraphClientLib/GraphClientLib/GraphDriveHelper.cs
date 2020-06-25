@@ -128,58 +128,6 @@ namespace GraphClientLib
                         .PutAsync<DriveItem>(stream);
             return createdFile;
         }
-        //original code copies from msdn
-        private async Task WatchMailFoldersTest(int pollInterval)
-        {
-            // Get first page of mail folders
-            IMailFolderDeltaCollectionPage deltaCollection;
-            deltaCollection = await _graphClient.Me.MailFolders
-                .Delta()
-                .Request()
-                .GetAsync();
-            //deltaCollection = await _graphClient.Me.Drive.Root.Delta().Request().GetAsync();
-            //await _graphClient.Sites.Root.Drive.Root.Delta().Request().GetAsync()
-
-            while (true)
-            {
-                if (deltaCollection.CurrentPage.Count <= 0)
-                {
-                    Console.WriteLine("No changes...");
-                }
-                else
-                {
-                    bool morePagesAvailable = false;
-                    do
-                    {
-                        // If there is a NextPageRequest, there are more pages
-                        morePagesAvailable = deltaCollection.NextPageRequest != null;
-                        foreach (var mailFolder in deltaCollection.CurrentPage)
-                        {
-                            //await ProcessChanges(mailFolder);
-                        }
-
-                        if (morePagesAvailable)
-                        {
-                            // Get the next page of results
-                            deltaCollection = await deltaCollection.NextPageRequest.GetAsync();
-                        }
-                    }
-                    while (morePagesAvailable);
-                }
-
-                // Once we've iterated through all of the pages, there should
-                // be a delta link, which is used to request all changes since our last query
-                var _deltaLink = deltaCollection.AdditionalData["@odata.deltaLink"].ToString();
-                if (!string.IsNullOrEmpty(_deltaLink))
-                {
-                    Console.WriteLine($"Processed current delta. Will check back in {pollInterval} seconds.");
-                    await Task.Delay(pollInterval * 1000);
-
-                    deltaCollection.InitializeNextPageRequest(_graphClient, _deltaLink.ToString());
-                    deltaCollection = await deltaCollection.NextPageRequest.GetAsync();
-                }
-            }
-        }
 
         /// <summary>
         /// just for testing

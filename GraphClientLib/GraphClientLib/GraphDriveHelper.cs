@@ -181,6 +181,13 @@ namespace GraphClientLib
             }
         }
 
-
+        /// <summary>
+        /// just for testing
+        /// </summary>
+        internal void RecreateGraphNewClient()
+        {
+            deltaCollection = null;
+            this._graphClient = new GraphServiceClient(_graphClient.AuthenticationProvider);
+        }
     }
 }

@@ -13,16 +13,27 @@ namespace OutlookRemindersOntop
     {
         public ActivitySimulator(string monitorUntilText)
         {
-            this.timer = new System.Timers.Timer();
 #if DEBUG
-            this.timerInterval = TimeSpan.FromMinutes(1);
+            timerInterval = TimeSpan.FromMinutes(1);
 
 #else
-            this.timerInterval = TimeSpan.FromMinutes(5);
+            timerInterval = TimeSpan.FromMinutes(5);
 
 #endif
+
+            createNewTimer();
+            try
+            {
+                this.simulateActivityUntilHours = int.Parse(monitorUntilText);
+            } catch (Exception ex)
+            {
+                Trace.TraceError(ex.ToString());
+            }
+        }
+        private void createNewTimer()
+        {
+            this.timer = new System.Timers.Timer();
             timer.Interval = timerInterval.TotalMilliseconds;
-            this.simulateActivityUntilHours = int.Parse(monitorUntilText);
             this.timer.Elapsed += idlechecktimer_Elapsed;
             this.timer.Start();
         }
@@ -52,7 +63,16 @@ namespace OutlookRemindersOntop
 
         private readonly TimeSpan timerInterval;
 
-        public bool timerEnabled { get; set; }
+        public bool timerEnabled { get => this.timer.Enabled;
+            set { 
+                if (value == false)
+                    this.timer.Stop();
+                else
+                {
+                    createNewTimer();
+                }
+            }
+        }
         public int simulateActivityUntilHours { get; set; } 
     }
 }

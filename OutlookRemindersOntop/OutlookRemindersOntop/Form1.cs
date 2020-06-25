@@ -173,5 +173,16 @@ The site should open in your browser", "Expired:");
         {
             this.activitySimulator.timerEnabled = checkBoxMonitor.Checked;
         }
+
+        private void textBoxHours_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                this.activitySimulator.simulateActivityUntilHours = int.Parse(textBoxHours.Text);
+            } catch(Exception ex)
+            {
+                Trace.WriteLine(ex);
+            }
+        }
     }
 }

@@ -35,7 +35,7 @@ namespace GraphClientLibTest
                     //output.WriteLine(jsonString);
                     output.WriteLine($"id {x.Id} \tname {x.Name} \tUrl {x.WebUrl}");
                 };
-            graphClient.ProcessToken =
+            graphClient.ProcessDeltaLink =
                 async t => token = t;
 
                     count++;
@@ -58,7 +58,7 @@ namespace GraphClientLibTest
                     var item = $"id {x.Id} \tname {x.Name} \tUrl {x.WebUrl}";
                     log(item);
                 };
-            graphClient.ProcessToken =
+            graphClient.ProcessDeltaLink =
                 async t => token = t;
 
             var count1 = await graphClient.ProcessAllDriveItems();
@@ -103,7 +103,7 @@ namespace GraphClientLibTest
 
             var count4 = await graphClient.ProcessAllDriveItems();
             log($"      found {count4} changes");
-
+            Assert.Equal(0,count4);
 
         }
 

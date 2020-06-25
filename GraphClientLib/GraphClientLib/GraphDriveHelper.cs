@@ -19,6 +19,8 @@ namespace GraphClientLib
         private int _pagesize;
         private string _token;
         private object lockObject;
+        private string _deltalink;
+        private IDriveItemDeltaCollectionPage deltaCollection;
 
         public GraphDriveHelper(IAuthenticationProvider authProvider, ILogger<GraphUserHelper> logger)
         {
@@ -32,12 +34,12 @@ namespace GraphClientLib
             set => _pagesize = _inited ? throw new ArgumentException("") : value ;
         }
 
-        public string token
+        public string deltaLink
         {
-            get => _token;
-            set => _token = _inited ? throw new ArgumentException("") : value;
+            get => _deltalink;
+            set => _deltalink = _inited ? throw new ArgumentException("") : value;
         }
-        public Func<string, Task> ProcessToken { get;  set; }
+        public Func<string, Task> ProcessDeltaLink { get;  set; }
         public Func<DriveItem, Task> ProcessDriveChange { get;  set; }
 
         /// <summary>
@@ -47,11 +49,17 @@ namespace GraphClientLib
         public async Task<int> ProcessAllDriveItems()
         {
             _inited = true;
-            IDriveItemDeltaCollectionPage deltaCollection
+            if (deltaCollection==null)
+                deltaCollection
                    = await _graphClient.Sites.Root.Drive.Root.
-                Delta(String.IsNullOrEmpty(token) ? null : token).
+                Delta().
                 Request().
-                GetAsync(); ;
+                GetAsync();
+            if (!string.IsNullOrEmpty(_deltalink))
+            {
+                deltaCollection.InitializeNextPageRequest(_graphClient, _deltalink.ToString());
+                deltaCollection = await deltaCollection.NextPageRequest.GetAsync();
+            }
 
             if (deltaCollection.CurrentPage.Count <= 0)
             {
@@ -92,17 +100,15 @@ namespace GraphClientLib
             // Once we've iterated through all of the pages, there should
             // be a delta link, which is used to request all changes since our last query
             var deltalink = deltaCollection.AdditionalData["@odata.deltaLink"].ToString();
-            _logger.LogInformation($"Processed current delta. getting back link for next delta {deltalink} token={token}");
-
-            var deltauri = new Uri(deltalink);
-            var queries = System.Web.HttpUtility.ParseQueryString(deltauri.Query);
-            var nexttoken = queries.Get("token");
-
-            if (ProcessToken != null && nexttoken !=null)
+            _logger.LogInformation($"Processed current delta. getting back link for next delta {deltalink} ");
+            if (_deltalink != deltalink)
+                _deltalink = deltalink;
+            else
+                _logger.LogError("got the same deltalink again"); 
+            if (ProcessDeltaLink != null)
                 try
                 {
-                    _token = nexttoken;
-                    await (ProcessToken(token));
+                    await (ProcessDeltaLink(deltalink));
                 }
                 catch (Exception ex)
                 {

@@ -15,7 +15,7 @@ namespace GraphClientLib
         /// </summary>
         /// <returns></returns>
         Task<int> ProcessAllDriveItems();
-        Func<string, Task> ProcessToken { get; set; }
+        Func<string, Task> ProcessDeltaLink { get; set; }
         Func<DriveItem, Task> ProcessDriveChange { get; set; }
 
         Task<DriveItem> UploadSmallFile(DriveItem parent, Stream stream, string fileName);

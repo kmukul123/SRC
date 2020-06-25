@@ -53,7 +53,6 @@ namespace GraphClientLib
                 Request().
                 GetAsync(); ;
 
-
             if (deltaCollection.CurrentPage.Count <= 0)
             {
                 _logger.LogInformation("No changes...");
@@ -97,11 +96,12 @@ namespace GraphClientLib
 
             var deltauri = new Uri(deltalink);
             var queries = System.Web.HttpUtility.ParseQueryString(deltauri.Query);
-            _token = queries.Get("token");
+            var nexttoken = queries.Get("token");
 
-            if (ProcessToken != null)
+            if (ProcessToken != null && nexttoken !=null)
                 try
                 {
+                    _token = nexttoken;
                     await (ProcessToken(token));
                 }
                 catch (Exception ex)

@@ -62,6 +62,7 @@ namespace GraphClientLibTest
                 async t => token = t;
 
             var count1 = await graphClient.ProcessAllDriveItems();
+            
             Assert.True(count1 > 0);
             Assert.False(string.IsNullOrEmpty(token));
 
@@ -69,12 +70,23 @@ namespace GraphClientLibTest
             var uploadedItem = await graphClient.UploadSmallFile(firstFolder, stream, "Hello.txt");
             log($"      uploaded file {uploadedItem.Id} {uploadedItem.Name}");
             log($"      Looking for changes");
+            var foundHelloChange = false;
+            graphClient.ProcessDriveChange =
+                async x => {
+                    //output.WriteLine(jsonString);
+                    var item = $"id {x.Id} \tname {x.Name} \tUrl {x.WebUrl}";
+                    if (x.Id == uploadedItem.Id)
+                        foundHelloChange = true;
+                    log(item);
+                };
+
             try
             {
                 var count2 = await graphClient.ProcessAllDriveItems();
                 log($"      found {count2} changes");
 
                 Assert.True(count2 > 0 && count2< count1+1);
+                Assert.True(foundHelloChange);
                 Assert.NotNull(uploadedItem);
                 Assert.False(string.IsNullOrEmpty(token));
             } finally
@@ -84,9 +96,15 @@ namespace GraphClientLibTest
                .Items[uploadedItem.Id]
                .Request()
                .DeleteAsync();
+                log($"      deleted file {uploadedItem.Id} {uploadedItem.Name}");
             }
+            var count3 = await graphClient.ProcessAllDriveItems();
+            log($"      found {count3} changes");
 
-                
+            var count4 = await graphClient.ProcessAllDriveItems();
+            log($"      found {count4} changes");
+
+
         }
 
         private void log(string item)

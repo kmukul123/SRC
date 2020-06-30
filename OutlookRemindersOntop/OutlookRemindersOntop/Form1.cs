@@ -140,6 +140,8 @@ The site should open in your browser", "Expired:");
                 statusStrip1.Update();
                 statusStrip1.Refresh();
                 notifyIcon1.Visible = lastvisible;
+                Trace.WriteLine(message);
+                //Trace.Flush();
             }
 
         }

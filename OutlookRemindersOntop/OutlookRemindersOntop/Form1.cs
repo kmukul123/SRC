@@ -97,6 +97,7 @@ The site should open in your browser", "Expired:");
         private void ScanAllWindows_Click(object sender, EventArgs e)
         {
             windowWatcher.scanAllWindows();
+            activitySimulator.idlechecktimer_Elapsed(sender, null);
         }
 
         private void ToolStripStatusLabel1_Click(object sender, EventArgs e)
@@ -140,7 +141,7 @@ The site should open in your browser", "Expired:");
                 statusStrip1.Update();
                 statusStrip1.Refresh();
                 notifyIcon1.Visible = lastvisible;
-                Trace.WriteLine(message);
+                //Trace.WriteLine(message);
                 //Trace.Flush();
             }
 

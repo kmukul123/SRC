@@ -17,7 +17,7 @@ namespace OutlookRemindersOntop
             timerInterval = TimeSpan.FromMinutes(1);
 
 #else
-            timerInterval = TimeSpan.FromMinutes(5);
+            timerInterval = TimeSpan.FromMinutes(2);
 
 #endif
 
@@ -27,7 +27,7 @@ namespace OutlookRemindersOntop
                 this.simulateActivityUntilHours = int.Parse(monitorUntilText);
             } catch (Exception ex)
             {
-                Trace.TraceError(ex.ToString());
+                Logger.notifyError(ex.ToString());
             }
         }
         private void createNewTimer()
@@ -38,18 +38,21 @@ namespace OutlookRemindersOntop
             this.timer.Start();
         }
 
-        private void idlechecktimer_Elapsed(object sender, ElapsedEventArgs e)
+        internal void idlechecktimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             try
             {
+                var enabled = this.timer.Enabled;
                 this.timer.Stop();
                 var idletime = Win32Helper.GetIdleTimeInSecs();
-                if (timerEnabled && DateTime.Now.Hour <= simulateActivityUntilHours)
+                if (enabled && DateTime.Now.Hour <= simulateActivityUntilHours)
                 {
-                    if (idletime >= timerInterval.TotalSeconds - 1)
+                    if (idletime >= timerInterval.TotalSeconds - 1 
+                        || e == null)
                         SendKeys.SendWait("^{ESC}");
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Trace.TraceError("exception in activity timer " + ex);
             }

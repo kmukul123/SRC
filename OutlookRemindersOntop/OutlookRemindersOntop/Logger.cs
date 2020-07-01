@@ -20,7 +20,9 @@ namespace OutlookRemindersOntop
         public static void Debug(string logline)
         {
             //System.Diagnostics.Debug.WriteLine(logline);
+#if DEBUG
             Info(logline);
+#endif
         }
 
         public static void Error(string logline)
@@ -33,7 +35,7 @@ namespace OutlookRemindersOntop
 
         public static void Alert(string logline)
         {
-            Trace.TraceInformation(logline);
+            Trace.TraceError(logline);
             notifyError?.Invoke($"Alert {logline} {DateTime.Now.ToShortTimeString()}");
 
             Console.WriteLine(logline);

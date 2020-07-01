@@ -52,18 +52,18 @@
             // scanAllWindows
             // 
             this.scanAllWindows.Location = new System.Drawing.Point(405, 52);
-            this.scanAllWindows.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.scanAllWindows.Margin = new System.Windows.Forms.Padding(4);
             this.scanAllWindows.Name = "scanAllWindows";
             this.scanAllWindows.Size = new System.Drawing.Size(160, 27);
             this.scanAllWindows.TabIndex = 1;
-            this.scanAllWindows.Text = "ScanAllWindows";
+            this.scanAllWindows.Text = "Test";
             this.scanAllWindows.UseVisualStyleBackColor = true;
             this.scanAllWindows.Click += new System.EventHandler(this.ScanAllWindows_Click);
             // 
             // donateButton
             // 
             this.donateButton.Location = new System.Drawing.Point(405, 111);
-            this.donateButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.donateButton.Margin = new System.Windows.Forms.Padding(4);
             this.donateButton.Name = "donateButton";
             this.donateButton.Size = new System.Drawing.Size(160, 31);
             this.donateButton.TabIndex = 2;
@@ -97,7 +97,7 @@
             // 
             this.checkBoxstartup.AutoSize = true;
             this.checkBoxstartup.Location = new System.Drawing.Point(31, 361);
-            this.checkBoxstartup.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBoxstartup.Margin = new System.Windows.Forms.Padding(4);
             this.checkBoxstartup.Name = "checkBoxstartup";
             this.checkBoxstartup.Size = new System.Drawing.Size(124, 21);
             this.checkBoxstartup.TabIndex = 4;
@@ -109,7 +109,7 @@
             // 
             this.checkBoxMonitor.AutoSize = true;
             this.checkBoxMonitor.Location = new System.Drawing.Point(31, 167);
-            this.checkBoxMonitor.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBoxMonitor.Margin = new System.Windows.Forms.Padding(4);
             this.checkBoxMonitor.Name = "checkBoxMonitor";
             this.checkBoxMonitor.Size = new System.Drawing.Size(107, 21);
             this.checkBoxMonitor.TabIndex = 5;
@@ -120,7 +120,7 @@
             // textBoxHours
             // 
             this.textBoxHours.Location = new System.Drawing.Point(149, 167);
-            this.textBoxHours.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBoxHours.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxHours.MaxLength = 2;
             this.textBoxHours.Name = "textBoxHours";
             this.textBoxHours.Size = new System.Drawing.Size(56, 22);
@@ -150,7 +150,7 @@
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.donateButton);
             this.Controls.Add(this.scanAllWindows);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "OutlookRemindersOnTop";
             this.Text = "BringOutlookRemindersOnTop";
             this.Load += new System.EventHandler(this.Form1_Load);

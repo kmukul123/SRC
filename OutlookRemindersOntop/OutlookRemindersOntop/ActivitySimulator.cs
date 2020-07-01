@@ -40,15 +40,16 @@ namespace OutlookRemindersOntop
 
         internal void idlechecktimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            if (!timerEnabled)
+                return;
             try
             {
-                var enabled = this.timer.Enabled;
                 this.timer.Stop();
                 var idletime = Win32Helper.GetIdleTimeInSecs();
-                if (enabled && DateTime.Now.Hour <= simulateActivityUntilHours)
+                if (DateTime.Now.Hour <= simulateActivityUntilHours)
                 {
                     if (idletime >= timerInterval.TotalSeconds - 1 
-                        || e == null)
+                        ||e == null)
                         SendKeys.SendWait("^{ESC}");
                 }
             }

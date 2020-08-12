@@ -42,6 +42,7 @@ The site should open in your browser", "Expired:");
             Logger.notifyError = this.NotifyMessage;
             windowWatcher = new WindowWatcher();
             activitySimulator = new ActivitySimulator(textBoxHours.Text);
+            activitySimulator.timerEnabled = checkBoxMonitor.Checked;
             notifyIcon1.Icon = SystemIcons.Application;
             this.checkBoxstartup.Hide();
 

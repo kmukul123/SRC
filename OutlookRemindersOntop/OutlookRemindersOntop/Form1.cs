@@ -17,8 +17,11 @@ namespace OutlookRemindersOntop
         WindowWatcher windowWatcher;
         ActivitySimulator activitySimulator;
         Random random = new Random();
-        public OutlookRemindersOnTop()
+        private string _monitorUntilText;
+
+        public OutlookRemindersOnTop(string monitorUntilText)
         {
+            this._monitorUntilText = monitorUntilText;
             InitializeComponent();
         }
         private delegate void SafeCallDelegate(string text);
@@ -36,13 +39,18 @@ The site should open in your browser", "Expired:");
                 //Environment.Exit(1);
                 //return;
             }
+            this.labelhours.Visible = false;
+            this.checkBoxMonitor.Visible = false;
+            this.textBoxHours.Visible = false;
             toolStripStatusLabel1.Spring = true;
             statusStrip1.LayoutStyle = ToolStripLayoutStyle.Flow;
 
             Logger.notifyError = this.NotifyMessage;
             windowWatcher = new WindowWatcher();
-            activitySimulator = new ActivitySimulator(textBoxHours.Text);
-            activitySimulator.timerEnabled = checkBoxMonitor.Checked;
+            if (_monitorUntilText != null) {
+                activitySimulator = new ActivitySimulator(_monitorUntilText);
+                activitySimulator.timerEnabled = _monitorUntilText!=null;
+            }
             notifyIcon1.Icon = SystemIcons.Application;
             this.checkBoxstartup.Hide();
 
@@ -98,7 +106,7 @@ The site should open in your browser", "Expired:");
         private void ScanAllWindows_Click(object sender, EventArgs e)
         {
             windowWatcher.scanAllWindows();
-            activitySimulator.idlechecktimer_Elapsed(sender, null);
+            activitySimulator?.idlechecktimer_Elapsed(sender, null);
         }
 
         private void ToolStripStatusLabel1_Click(object sender, EventArgs e)
@@ -187,6 +195,11 @@ The site should open in your browser", "Expired:");
             {
                 Trace.WriteLine(ex);
             }
+        }
+
+        private void labelhours_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

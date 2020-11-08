@@ -137,6 +137,7 @@
             this.labelhours.Size = new System.Drawing.Size(44, 17);
             this.labelhours.TabIndex = 7;
             this.labelhours.Text = "hours";
+            this.labelhours.Click += new System.EventHandler(this.labelhours_Click);
             // 
             // OutlookRemindersOnTop
             // 

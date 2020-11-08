@@ -13,13 +13,13 @@ namespace OutlookRemindersOntop
 {
     public class ActivitySimulator
     {
-        public ActivitySimulator(string monitorUntilText, int defaultidletime, IntPtr handle)
+        public ActivitySimulator(string monitorUntilText, int defaultidletime= 4)
         {
 #if DEBUG
             timerInterval = TimeSpan.FromMinutes(1);
 
 #else           
-            timerInterval = TimeSpan.FromMinutes(defaultidletime);
+            timerInterval = TimeSpan.FromMinutes(4);
 
 #endif
             this.handle = handle;
@@ -41,6 +41,7 @@ namespace OutlookRemindersOntop
             this.timer.Elapsed += idlechecktimer_Elapsed;
             this.timer.Start();
         }
+
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool SetForegroundWindow(IntPtr hWnd);

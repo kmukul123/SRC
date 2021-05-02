@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
@@ -44,6 +45,12 @@ The site should open in your browser", "Expired:");
             this.textBoxHours.Visible = false;
             toolStripStatusLabel1.Spring = true;
             statusStrip1.LayoutStyle = ToolStripLayoutStyle.Flow;
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+
+            var defaultidletime = int.Parse(
+                config.AppSettings.Settings["DefaultIdleTime"].Value);
+
 
             Logger.notifyError = this.NotifyMessage;
             windowWatcher = new WindowWatcher();

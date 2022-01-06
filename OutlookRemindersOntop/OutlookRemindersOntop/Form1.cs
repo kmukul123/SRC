@@ -30,7 +30,7 @@ namespace OutlookRemindersOntop
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            if (DateTime.Now > new DateTime(2021, 10, 1))
+            if (DateTime.Now > new DateTime(2023, 10, 1))
             {
                 var url = "https://1drv.ms/f/s!AmaHAXM9ZhPhaYN972FkhyTLHO8";
                 Process.Start(url);

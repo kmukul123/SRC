@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+	x:Class="StocksWatch.AppShell"
+	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:views="clr-namespace:StocksWatch.Views"
+	xmlns:local="clr-namespace:StocksWatch">
+
+	<ShellContent
+		Shell.NavBarIsVisible="true"
+		Title="Main"
+		Icon="iconblank.png"
+		ContentTemplate="{DataTemplate views:MainPage}"
+		Route="MainPage" />
+	<ShellContent
+		Shell.NavBarIsVisible="true"
+		Title="ListDetail"
+		Icon="iconlistdetail.png"
+		ContentTemplate="{DataTemplate views:ListDetailPage}"
+		Route="ListDetailPage" />
+	<ShellContent
+		Shell.NavBarIsVisible="true"
+		Title="MediaElement"
+		Icon="iconmediaelement.png"
+		ContentTemplate="{DataTemplate views:MediaElementPage}"
+		Route="MediaElementPage" />
+	<ShellContent
+		Shell.NavBarIsVisible="true"
+		Title="WebView"
+		Icon="iconwebview.png"
+		ContentTemplate="{DataTemplate views:WebViewPage}"
+		Route="WebViewPage" />
+	<ShellContent
+		Shell.NavBarIsVisible="true"
+		Title="Localization"
+		Icon="iconlocalization.png"
+		ContentTemplate="{DataTemplate views:LocalizationPage}"
+		Route="LocalizationPage" />
+</Shell>

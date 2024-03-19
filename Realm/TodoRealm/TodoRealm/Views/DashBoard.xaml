@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TodoRealm.Views.DashBoard"
+             xmlns:vm="clr-namespace:TodoRealm.VM"
+             x:DataType="vm:LoginVM"
+             BackgroundColor="#0069a6"
+             Title="DashBoard">
+    <ScrollView>
+        <VerticalStackLayout Spacing="25" Padding="30,0" VerticalOptions="Center">
+            <Frame>
+                <Entry Placeholder="Email" Text="{Binding EmailText}" TextColor="#333"/>
+            </Frame>
+    </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using TodoRealm.Views;
+using TodoRealm.VM;
 
 namespace TodoRealm
 {
@@ -18,6 +20,10 @@ namespace TodoRealm
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+            builder.Services.AddSingleton<DashBoard>();
+            builder.Services.AddSingleton<DashBoardVM>();
+            builder.Services.AddSingleton<LoginPage>();
+            builder.Services.AddSingleton<LoginVM>();
 
             return builder.Build();
         }

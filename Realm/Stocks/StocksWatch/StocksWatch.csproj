@@ -63,6 +63,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Update="Page\HistoricalData\HistoricalDataPage2.xaml.cs">
+		  <DependentUpon>HistoricalDataPage2.xaml</DependentUpon>
+		</Compile>
 		<Compile Update="Page\HistoricalData\HistoricalDataPage1.xaml.cs">
 		  <DependentUpon>HistoricalDataPage1.xaml</DependentUpon>
 		</Compile>
@@ -106,6 +109,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Page\HistoricalData\HistoricalDataPage2.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Page\HistoricalData\HistoricalDataPage1.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

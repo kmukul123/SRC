@@ -1,4 +1,5 @@
 ﻿
+using DevExpress.Maui;
 using StocksWatch.Page;
 using StocksWatch.Page.HistoricalData;
 
@@ -13,6 +14,7 @@ public static class MauiProgram
             .UseMauiApp<App>()
             .UseMauiCommunityToolkitMediaElement()
             .UseMauiCommunityToolkit()
+            .UseDevExpress()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("FontAwesome6FreeBrands.otf", "FontAwesomeBrands");

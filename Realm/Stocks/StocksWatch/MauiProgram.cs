@@ -1,49 +1,58 @@
-﻿namespace StocksWatch;
+﻿
+using StocksWatch.Page;
+using StocksWatch.Page.HistoricalData;
+
+namespace StocksWatch;
 
 public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
-	{
-		var builder = MauiApp.CreateBuilder();
-		builder
-			.UseMauiApp<App>()
-			.UseMauiCommunityToolkitMediaElement()
-			.UseMauiCommunityToolkit()
-			.ConfigureFonts(fonts =>
-			{
-				fonts.AddFont("FontAwesome6FreeBrands.otf", "FontAwesomeBrands");
-				fonts.AddFont("FontAwesome6FreeRegular.otf", "FontAwesomeRegular");
-				fonts.AddFont("FontAwesome6FreeSolid.otf", "FontAwesomeSolid");
-				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-			});
+    {
+        var builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
+            .UseMauiCommunityToolkitMediaElement()
+            .UseMauiCommunityToolkit()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("FontAwesome6FreeBrands.otf", "FontAwesomeBrands");
+                fonts.AddFont("FontAwesome6FreeRegular.otf", "FontAwesomeRegular");
+                fonts.AddFont("FontAwesome6FreeSolid.otf", "FontAwesomeSolid");
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
 
-		builder.Services.AddSingleton<MainViewModel>();
+        builder.Services.RegisterServices();
 
-		builder.Services.AddSingleton<MainPage>();
+        return builder.Build();
+    }
 
-		builder.Services.AddTransient<SampleDataService>();
-		builder.Services.AddTransient<ListDetailDetailViewModel>();
-		builder.Services.AddTransient<ListDetailDetailPage>();
+    private static void RegisterServices(this IServiceCollection services)
+    {
+        services.AddSingleton<MainViewModel>();
 
-		builder.Services.AddSingleton<ListDetailViewModel>();
+        services.AddSingleton<MainPage>();
 
-		builder.Services.AddSingleton<ListDetailPage>();
+        services.AddTransient<SampleDataService>();
+        //services.AddTransient<ListDetailDetailViewModel>();
+        //services.AddTransient<ListDetailDetailPage>();
 
-		builder.Services.AddSingleton<MediaElementViewModel>();
+        services.AddSingleton<ListDetailViewModel>();
+        services.AddSingleton<ListDetailPage>();
 
-		builder.Services.AddSingleton<MediaElementPage>();
+        services.AddSingleton<MediaElementViewModel>();
+        services.AddSingleton<MediaElementPage>();
 
-		builder.Services.AddSingleton<WebViewViewModel>();
+        services.AddSingleton<WebViewViewModel>();
+        services.AddSingleton<WebViewPage>();
 
-		builder.Services.AddSingleton<WebViewPage>();
+        services.AddSingleton<LocalizationViewModel>();
+        services.AddSingleton<LocalizationPage>();
 
-		builder.Services.AddSingleton<LocalizationViewModel>();
+        services.AddSingleton<WatchListPage>();
+        services.AddSingleton<Page.WatchList.WatchListVM>();
 
-		builder.Services.AddSingleton<LocalizationPage>();
+        services.UsePageResolver();
+    }
 
-		builder.Services.UsePageResolver();
-
-		return builder.Build();
-	}
 }

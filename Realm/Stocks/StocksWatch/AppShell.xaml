@@ -4,6 +4,7 @@
 	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 	xmlns:views="clr-namespace:StocksWatch.Views"
+    xmlns:page ="clr-namespace:StocksWatch.Page"
 	xmlns:local="clr-namespace:StocksWatch">
 
 	<ShellContent
@@ -13,6 +14,12 @@
 		ContentTemplate="{DataTemplate views:MainPage}"
 		Route="MainPage" />
 	<ShellContent
+		Shell.NavBarIsVisible="true"
+		Title="WatchList"
+		Icon="iconlistdetail.png"
+		ContentTemplate="{DataTemplate page:WatchListPage}"
+		Route="WatchList" />
+    <ShellContent
 		Shell.NavBarIsVisible="true"
 		Title="ListDetail"
 		Icon="iconlistdetail.png"
@@ -36,4 +43,11 @@
 		Icon="iconlocalization.png"
 		ContentTemplate="{DataTemplate views:LocalizationPage}"
 		Route="LocalizationPage" />
+
+    <ShellContent
+		Shell.NavBarIsVisible="true"
+		Title="HistoricalDataPage"
+		Icon="iconlocalization.png"
+		ContentTemplate="{DataTemplate page:HistoricalDataPage}"
+		Route="HistoricalDataPage" />
 </Shell>

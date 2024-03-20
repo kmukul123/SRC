@@ -16,6 +16,6 @@ public partial class WatchListPage : ContentPage
     {
         var symbolViewModel = (CollectionItemViewModel)e.Item;
         var historicalDataViewModel = new HistoricalDataVM(symbolViewModel);
-        Navigation.PushAsync(new HistoricalDataPage(historicalDataViewModel));
+        Navigation.PushAsync(new HistoricalDataPage1(historicalDataViewModel));
     }
 }

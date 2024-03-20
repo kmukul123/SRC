@@ -2,9 +2,9 @@ using StocksWatch.Page.HistoricalData;
 
 namespace StocksWatch.Page;
 
-public partial class HistoricalDataPage : ContentPage
+public partial class HistoricalDataPage1 : ContentPage
 {
-	public HistoricalDataPage(HistoricalDataVM viewModel)
+	public HistoricalDataPage1(HistoricalDataVM viewModel)
 	{
 		InitializeComponent();
         BindingContext = viewModel;

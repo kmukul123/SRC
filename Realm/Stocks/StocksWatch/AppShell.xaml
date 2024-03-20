@@ -46,8 +46,8 @@
 
     <ShellContent
 		Shell.NavBarIsVisible="true"
-		Title="HistoricalDataPage"
+		Title="HistoricalDataPage1"
 		Icon="iconlocalization.png"
-		ContentTemplate="{DataTemplate page:HistoricalDataPage}"
+		ContentTemplate="{DataTemplate page:HistoricalDataPage1}"
 		Route="HistoricalDataPage" />
 </Shell>

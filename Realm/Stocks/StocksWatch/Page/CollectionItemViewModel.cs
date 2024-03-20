@@ -15,4 +15,9 @@ public class CollectionItemViewModel
     public double Change { get; set; }
     public double ChangePercent { get; set; }
     public DateTime Date { get; set; }
+
+    public CollectionItemViewModel()
+    {
+        
+    }
 }

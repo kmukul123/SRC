@@ -1,6 +1,6 @@
 ﻿using System.Net.Http.Json;
 
-namespace BlazorHybrid.Services;
+namespace CoffeeBrowser.Library.Services;
 
 public class CoffeeService : ICoffeeService
 {

@@ -16,7 +16,7 @@ namespace BlazorHybrid
                 });
 
             builder.Services.AddMauiBlazorWebView();
-            builder.Services.AddTransient<CoffeeService, CoffeeService>();
+            builder.Services.AddTransient<ICoffeeService, CoffeeService>();
 
 #if DEBUG
     		builder.Services.AddBlazorWebViewDeveloperTools();

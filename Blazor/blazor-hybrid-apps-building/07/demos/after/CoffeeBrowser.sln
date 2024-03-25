@@ -10,7 +10,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoffeeBrowser.BlazorServer"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoffeeBrowser.Wpf", "CoffeeBrowser.Wpf\CoffeeBrowser.Wpf.csproj", "{E68349DC-6CDC-4969-A4C9-2C4C13BF2053}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoffeeBrowser.WinForms", "CoffeeBrowser.WinForms\CoffeeBrowser.WinForms.csproj", "{55D49F94-B5C6-43C4-90BA-E28A7E3DB0DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoffeeBrowser.WinForms", "CoffeeBrowser.WinForms\CoffeeBrowser.WinForms.csproj", "{55D49F94-B5C6-43C4-90BA-E28A7E3DB0DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

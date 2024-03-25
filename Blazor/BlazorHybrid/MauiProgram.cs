@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using BlazorHybrid.Services;
+using Microsoft.Extensions.Logging;
 
 namespace BlazorHybrid
 {
@@ -15,6 +16,7 @@ namespace BlazorHybrid
                 });
 
             builder.Services.AddMauiBlazorWebView();
+            builder.Services.AddTransient<ICoffeeService, CoffeeService>();
 
 #if DEBUG
     		builder.Services.AddBlazorWebViewDeveloperTools();

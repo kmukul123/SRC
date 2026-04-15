@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivitySimulator.cs" />
+    <Compile Include="CircularTraceListener.cs" />
     <Compile Include="CachedPropertiesClass.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

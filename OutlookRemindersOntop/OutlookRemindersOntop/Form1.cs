@@ -1,14 +1,8 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Configuration;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace OutlookRemindersOntop
@@ -30,13 +24,17 @@ namespace OutlookRemindersOntop
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            if (DateTime.Now > new DateTime(2023, 10, 1))
+            if (DateTime.Now > new DateTime(2028, 10, 1))
             {
                 var url = "https://1drv.ms/f/s!AmaHAXM9ZhPhaYN972FkhyTLHO8";
-                Process.Start(url);
-                MessageBox.Show($@"Please Get new version from
+                DialogResult result = MessageBox.Show($@"Please Get new version from
 {url}
-The site should open in your browser", "Expired:");
+Click OK to open the site in your browser.", "Expired:", MessageBoxButtons.OKCancel);
+
+                if (result == DialogResult.OK)
+                {
+                    Process.Start(url);
+                }
                 //Environment.Exit(1);
                 //return;
             }
@@ -54,9 +52,10 @@ The site should open in your browser", "Expired:");
 
             Logger.notifyError = this.NotifyMessage;
             windowWatcher = new WindowWatcher();
-            if (_monitorUntilText != null) {
+            if (_monitorUntilText != null)
+            {
                 activitySimulator = new ActivitySimulator(_monitorUntilText);
-                activitySimulator.timerEnabled = _monitorUntilText!=null;
+                activitySimulator.timerEnabled = _monitorUntilText != null;
             }
             notifyIcon1.Icon = SystemIcons.Application;
             this.checkBoxstartup.Hide();
@@ -69,7 +68,7 @@ The site should open in your browser", "Expired:");
         private void WindowWatcher_WindowFoundHandler(object sender, WindowFoundEventArgs e)
         {
             if (!e.window.WasVisibleOnScreen)
-                this.NotifyMessage($"Brought { e.window.WndProcess}'s window with title {e.window.Title} on top {DateTime.Now.ToShortTimeString()}");
+                this.NotifyMessage($"Brought {e.window.WndProcess}'s window with title {e.window.Title} on top {DateTime.Now.ToShortTimeString()}");
             //else
             //    this.NotifyMessage($"Still NotVisible { e.window.WndProcess}'s window with title {e.window.Title}");
 
@@ -198,7 +197,8 @@ The site should open in your browser", "Expired:");
             try
             {
                 this.activitySimulator.simulateActivityUntilHours = int.Parse(textBoxHours.Text);
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Trace.WriteLine(ex);
             }

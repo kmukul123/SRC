@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
 
@@ -13,22 +8,23 @@ namespace OutlookRemindersOntop
 {
     public class ActivitySimulator
     {
-        public ActivitySimulator(string monitorUntilText, int defaultidletime= 4)
+        public ActivitySimulator(string monitorUntilText, int defaultidletime = 4)
         {
 #if DEBUG
             timerInterval = TimeSpan.FromMinutes(1);
 
 #else           
-            timerInterval = TimeSpan.FromMinutes(4);
+            timerInterval = TimeSpan.FromMinutes(5);
 
 #endif
             this.handle = handle;
             createNewTimer();
             try
             {
-                
+
                 this.simulateActivityUntilHours = int.Parse(monitorUntilText);
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logger.notifyError(ex.ToString());
             }
@@ -70,8 +66,9 @@ namespace OutlookRemindersOntop
                         SendKeys.SendWait("^{ESC}");
                         //SendKeys.SendWait("^");
                     }
-                    
-                } else
+
+                }
+                else
                 {
                     Trace.TraceInformation($"skipping until {simulateActivityUntilHours}");
                 }
@@ -91,8 +88,11 @@ namespace OutlookRemindersOntop
         private readonly TimeSpan timerInterval;
         private readonly IntPtr handle;
 
-        public bool timerEnabled { get => this.timer.Enabled;
-            set {
+        public bool timerEnabled
+        {
+            get => this.timer.Enabled;
+            set
+            {
                 if (value == false)
                 {
                     this.timer.Stop();
@@ -104,6 +104,6 @@ namespace OutlookRemindersOntop
                 }
             }
         }
-        public int simulateActivityUntilHours { get; set; } 
+        public int simulateActivityUntilHours { get; set; }
     }
 }

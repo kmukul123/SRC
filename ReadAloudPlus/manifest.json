@@ -40,5 +40,11 @@
       },
       "description": "Play/pause reading aloud"
     }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "read-aloud-plus@mukul.dev",
+      "strict_min_version": "109.0"
+    }
   }
 }

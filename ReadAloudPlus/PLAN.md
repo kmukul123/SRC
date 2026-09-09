@@ -57,13 +57,49 @@ Identical, starting at `chrome://extensions`.
 - Changes to `content/` or `background/`: click the **circular reload arrow** on the extension card, **then reload the web page** you're testing.
 - Changes to `popup/` or `options/`: just close and reopen the popup / options page.
 
+> **Always reload the page after reloading the extension.** Reloading the extension orphans the
+> content script already running in open tabs, so the right-click listener that records *where* you
+> clicked is gone. The service worker recovers by injecting a fresh copy, but that copy never saw the
+> right-click — so **"Read aloud from here" silently degrades to reading from the top of the page.**
+> This is the most common cause of "it started in the wrong place".
+
 ### Debugging
+There are three separate consoles — extension code doesn't all log to one place:
+
 | What | Where |
 | --- | --- |
-| Content script logs/errors | F12 DevTools on the page being read → Console |
+| Content script logs/errors (the reader engine) | F12 DevTools on the page being read → Console |
 | Popup logs | Right-click extension icon → **Inspect popup** |
-| Service worker logs | `edge://extensions` → click **service worker** on the card |
+| Service worker logs (context menus, injection) | `edge://extensions` → click **service worker** on the card |
 | Manifest/load errors | Red **Errors** button on the extension card |
+
+#### Diagnostic logging
+The extension's own logging is off by default. Turn on **Log diagnostics to the console** under
+*Diagnostics* in the options page — it applies immediately, no reload needed. Page-side lines are
+prefixed `[Read Aloud Plus]`, background lines `[Read Aloud Plus SW]`.
+
+With it on, a right-click → **Read aloud from here** should produce roughly:
+
+```
+[Read Aloud Plus] right-click at 412,633 (using click point) target <p>
+[Read Aloud Plus] anchor <p> offset 148 → "considerable difficulty in reconciling…"
+[Read Aloud Plus SW] menu click rap-read-here → playFromHere
+[Read Aloud Plus] play {fromHere: true, selection: false, anchor: true}
+[Read Aloud Plus] built 214 segments from <article> (61 text nodes)
+[Read Aloud Plus] anchor matched segment 87 → "considerable difficulty in reconciling…"
+[Read Aloud Plus] starting at segment 87 of 214 → "considerable difficulty in reconciling…"
+```
+
+What the failure modes look like:
+
+| Log line | Meaning |
+| --- | --- |
+| `content script missing, injecting and retrying` | The page predates the extension reload — reload the page; the click point was lost, so it reads from the top. |
+| `no anchor: caret landed on an element, not text` | Clicked on padding/margin rather than a word — falls back to the clicked element's first segment. |
+| `anchor element holds no readable segments` | The clicked text was skipped during extraction (a `SKIP_TAGS` element, hidden, or inside an existing highlight wrapper). |
+| `start point sits outside the detected content root — widening to <body>` | The `<article>`/`<main>` heuristic picked the wrong container; handled automatically. |
+| `no segment at or after the clicked element` | Clicked below all readable text — starts at the last segment. |
+| `no boundary events from this voice` | The chosen voice doesn't report word positions; the estimated highlight timer is driving highlighting. |
 
 ### Voice quality prerequisite
 If the voice dropdown only lists robotic voices, the extension shows a hint. To fix:
@@ -89,6 +125,7 @@ Work through these in order — each one isolates a different layer, so a failur
 - [ ] **CP12 — Graceful failures.** On `edge://settings` (a restricted page), pressing Play shows the error message in the popup rather than failing silently. On a page with no readable text, the status reads "No readable text found on this page."
 - [ ] **CP12b — Context menu.** Right-click directly on a word mid-paragraph → **Read aloud from here** starts at *that word*, not the top or the paragraph start. Right-click on padding/whitespace inside a paragraph → falls back to the paragraph's first segment. Select a passage, right-click → **Read selection aloud** reads only the selection; **Read aloud from here** starts at the first selected word and continues past the selection. **Stop reading aloud** halts playback and clears highlighting.
 - [ ] **CP12c — Select-to-jump.** While reading, double-click a word further down the page → playback restarts from that word. Select a phrase → playback jumps to its first word. Select text inside a form field or search box → playback is *not* hijacked. Untick *Selecting text jumps reading to it* → selecting text no longer affects playback (settings are read at play start, so press Stop then Play after changing it).
+- [ ] **CP12d — Diagnostic logging.** Tick *Log diagnostics to the console* in the options page (no reload). On a page's DevTools console, right-click a word → **Read aloud from here** and confirm the `right-click at … / anchor … / starting at segment …` lines appear and the quoted text matches the word you clicked. Untick it and confirm the console goes quiet.
 - [ ] **CP13 — Chrome parity.** Repeat CP1, CP3, CP5 in Chrome.
 - [ ] **CP14 — Mac smoke test** (if available). Voice list populates from macOS voices; playback and highlighting work.
 

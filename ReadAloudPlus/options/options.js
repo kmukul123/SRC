@@ -7,6 +7,7 @@ const els = {
   pitchOut: document.getElementById('pitchOut'),
   highlight: document.getElementById('highlight'),
   jumpOnSelect: document.getElementById('jumpOnSelect'),
+  debugLogging: document.getElementById('debugLogging'),
   voiceHint: document.getElementById('voiceHint'),
   saved: document.getElementById('saved'),
   siteList: document.getElementById('siteList'),
@@ -74,6 +75,7 @@ async function load() {
   els.pitchOut.value = Number(global.pitch).toFixed(2);
   els.highlight.checked = global.highlight;
   els.jumpOnSelect.checked = global.jumpOnSelect;
+  els.debugLogging.checked = global.debugLogging;
   for (const field of FIELDS) pauseEls[field].value = global[field];
   populateVoices(global.voiceURI);
   renderSites();
@@ -86,6 +88,7 @@ async function persist() {
     voiceURI: els.voice.value,
     highlight: els.highlight.checked,
     jumpOnSelect: els.jumpOnSelect.checked,
+    debugLogging: els.debugLogging.checked,
   };
   for (const field of FIELDS) patch[field] = Number(pauseEls[field].value);
   await ReadAloudSettings.saveGlobal(patch);
@@ -97,7 +100,15 @@ async function persist() {
   }, 1500);
 }
 
-for (const el of [els.rate, els.pitch, els.voice, els.highlight, els.jumpOnSelect, ...Object.values(pauseEls)]) {
+for (const el of [
+  els.rate,
+  els.pitch,
+  els.voice,
+  els.highlight,
+  els.jumpOnSelect,
+  els.debugLogging,
+  ...Object.values(pauseEls),
+]) {
   el.addEventListener('change', persist);
 }
 els.rate.addEventListener('input', () => {

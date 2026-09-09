@@ -27,6 +27,18 @@
     </section>
 
     <section>
+      <h2>Diagnostics</h2>
+      <label class="inline"><input id="debugLogging" type="checkbox" /> Log diagnostics to the console</label>
+      <p class="muted">
+        When on, the extension explains what it is doing — which text it found, where a right-click
+        resolved to, and which segment it started from. Page logs appear in DevTools (F12) →
+        <strong>Console</strong> on the page being read; background logs appear on the extensions
+        page, under <strong>service worker</strong> on the Read Aloud Plus card. Takes effect
+        immediately — no reload needed.
+      </p>
+    </section>
+
+    <section>
       <h2>Per-site overrides</h2>
       <p class="muted">Sites with their own settings. Removing an override makes the site use the global defaults.</p>
       <ul id="siteList"></ul>

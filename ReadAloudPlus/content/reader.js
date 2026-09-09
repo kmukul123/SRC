@@ -29,14 +29,42 @@
     lastContextAnchor: null,
   };
 
+  // Diagnostics are off by default — tick "Log diagnostics to the console" in the options
+  // page. Read eagerly rather than at play start, because the contextmenu handler runs long
+  // before any settings are resolved, and storage.onChanged keeps it live without a reload.
+  let debugLogging = false;
+
+  function log(...args) {
+    if (debugLogging) console.log('%c[Read Aloud Plus]', 'color:#b45309;font-weight:bold', ...args);
+  }
+
+  function preview(text, max = 60) {
+    const clean = String(text).replace(/\s+/g, ' ').trim();
+    return clean.length > max ? `${clean.slice(0, max)}…` : clean;
+  }
+
+  ReadAloudSettings.loadSettings().then(({ global }) => {
+    debugLogging = Boolean(global.debugLogging);
+    log('content script ready on', location.href);
+  });
+
+  chrome.storage.onChanged.addListener((changes) => {
+    const next = changes[ReadAloudSettings.STORAGE_KEY]?.newValue?.global?.debugLogging;
+    if (next !== undefined) debugLogging = Boolean(next);
+  });
+
   // Resolve a viewport point to the exact text node + character offset under it.
   function caretPointFromPoint(x, y) {
     if (document.caretRangeFromPoint) {
       const range = document.caretRangeFromPoint(x, y);
       if (range) return { node: range.startContainer, offset: range.startOffset };
+      log('caretRangeFromPoint returned nothing at', x, y);
     } else if (document.caretPositionFromPoint) {
       const position = document.caretPositionFromPoint(x, y);
       if (position) return { node: position.offsetNode, offset: position.offset };
+      log('caretPositionFromPoint returned nothing at', x, y);
+    } else {
+      log('no caret-from-point API available in this browser');
     }
     return null;
   }
@@ -52,7 +80,10 @@
   }
 
   function makeAnchor(node, offset) {
-    if (!node || node.nodeType !== Node.TEXT_NODE) return null;
+    if (!node || node.nodeType !== Node.TEXT_NODE) {
+      log('no anchor: caret landed on an element, not text', node);
+      return null;
+    }
     const element = stableElementFor(node);
     if (!element) return null;
 
@@ -60,9 +91,16 @@
     let total = 0;
     let current;
     while ((current = walker.nextNode())) {
-      if (current === node) return { element, offset: total + offset };
+      if (current === node) {
+        const anchor = { element, offset: total + offset };
+        log('anchor', `<${element.tagName.toLowerCase()}>`, `offset ${anchor.offset}`, '→', preview(
+          element.textContent.slice(anchor.offset, anchor.offset + 40),
+        ));
+        return anchor;
+      }
       total += current.nodeValue.length;
     }
+    log('no anchor: text node not found under', element);
     return null;
   }
 
@@ -86,6 +124,13 @@
         ? { node: state.lastContextRange.startContainer, offset: state.lastContextRange.startOffset }
         : caretPointFromPoint(event.clientX, event.clientY);
       state.lastContextAnchor = point ? makeAnchor(point.node, point.offset) : null;
+      log(
+        'right-click at',
+        `${event.clientX},${event.clientY}`,
+        state.lastContextRange ? '(using selection start)' : '(using click point)',
+        'target',
+        target,
+      );
     },
     true,
   );
@@ -149,8 +194,21 @@
     return settings.otherPauseMs;
   }
 
-  function buildSegments(settings, range) {
-    const root = range ? document.body : findContentRoot();
+  // The content-root heuristic can exclude the very text the user right-clicked (sidebars,
+  // comments, pages with a misleading <article>). Widen to <body> rather than silently
+  // starting somewhere else entirely.
+  function pickRoot(range, focusEl) {
+    if (range) return document.body;
+    const root = findContentRoot();
+    if (focusEl && root !== document.body && !root.contains(focusEl)) {
+      log('start point sits outside the detected content root', root, '— widening to <body>');
+      return document.body;
+    }
+    return root;
+  }
+
+  function buildSegments(settings, range, focusEl) {
+    const root = pickRoot(range, focusEl);
     const textNodes = collectTextNodes(root, range);
     const segments = [];
 
@@ -173,6 +231,7 @@
         }
       }
     }
+    log(`built ${segments.length} segments from`, root, `(${textNodes.length} text nodes)`);
     return segments;
   }
 
@@ -311,6 +370,8 @@
     const segment = state.segments[state.index];
     const wrapper = state.settings.highlight ? wrapSegment(segment) : null;
     if (wrapper) state.activeSegmentEl = wrapper;
+    else if (state.settings.highlight) log(`segment ${state.index} could not be wrapped — no word highlighting`);
+    log(`speak ${state.index}/${state.segments.length} (pause ${segment.pauseMs}ms after) →`, preview(segment.text));
 
     const utterance = new SpeechSynthesisUtterance(segment.text);
     utterance.rate = state.settings.rate;
@@ -331,7 +392,9 @@
         highlightWordAt(wrapper, event.charIndex);
       };
       state.boundaryWatchdog = setTimeout(() => {
-        if (!state.sawBoundary) startFallbackHighlight(wrapper);
+        if (state.sawBoundary) return;
+        log('no boundary events from this voice — using the estimated highlight timer');
+        startFallbackHighlight(wrapper);
       }, 400);
     }
 
@@ -370,7 +433,11 @@
   // Segment containing the anchored word, trimmed to start at that word. Returns -1 when
   // the anchor can't be matched at all, so the caller can fall back to the clicked element.
   function indexAtAnchor(anchor) {
-    if (!anchor?.element || !document.contains(anchor.element)) return -1;
+    if (!anchor?.element) return -1;
+    if (!document.contains(anchor.element)) {
+      log('anchor element is no longer in the document — the page changed since the right-click');
+      return -1;
+    }
 
     const walker = document.createTreeWalker(anchor.element, NodeFilter.SHOW_TEXT);
     const baseOffsets = new Map();
@@ -382,17 +449,28 @@
     }
 
     let following = -1;
+    let candidates = 0;
     for (let i = 0; i < state.segments.length; i++) {
       const segment = state.segments[i];
       const base = baseOffsets.get(segment.node);
       if (base === undefined) continue;
+      candidates++;
       const start = base + segment.nodeStart;
       if (anchor.offset >= start && anchor.offset < start + segment.text.length) {
         trimToWord(segment, anchor.offset - start);
+        log(`anchor matched segment ${i} →`, preview(segment.text));
         return i;
       }
       // Anchor landed between segments (whitespace, skipped markup) — take the next one.
       if (following < 0 && start >= anchor.offset) following = i;
+    }
+
+    if (!candidates) {
+      log('anchor element holds no readable segments — it was skipped during extraction');
+    } else if (following >= 0) {
+      log(`anchor fell between segments; using the next one (${following}) →`, preview(state.segments[following].text));
+    } else {
+      log(`anchor offset ${anchor.offset} is past all ${candidates} segments in its element`);
     }
     return following;
   }
@@ -406,7 +484,10 @@
       if (el === parent || el.contains(parent)) return i;
       if (el.compareDocumentPosition(parent) & Node.DOCUMENT_POSITION_FOLLOWING) return i;
     }
-    return 0;
+    // Nothing follows the click, so it sits below the last readable text. Starting at the
+    // very top would be the most surprising possible answer; start at the end instead.
+    log('no segment at or after the clicked element — starting at the last segment');
+    return Math.max(0, state.segments.length - 1);
   }
 
   async function play(options = {}) {
@@ -420,14 +501,24 @@
     }
     stop();
     state.settings = await ReadAloudSettings.resolveForSite(location.hostname);
-    state.segments = buildSegments(state.settings, range);
+    debugLogging = Boolean(state.settings.debugLogging);
+    log('play', { fromHere: Boolean(options.fromHere), selection: Boolean(options.selection), anchor: Boolean(anchor) });
+    state.segments = buildSegments(state.settings, range, anchor?.element || startFrom);
 
     // Prefer the exact clicked/selected word; fall back to the clicked element's first segment.
     let index = anchor ? indexAtAnchor(anchor) : -1;
-    if (index < 0) index = startFrom ? indexAtElement(startFrom) : 0;
+    if (index < 0 && startFrom) {
+      log('anchor unusable — falling back to the clicked element');
+      index = indexAtElement(startFrom);
+    }
+    if (index < 0) index = 0;
     state.index = index;
 
-    if (!state.segments.length) return status();
+    if (!state.segments.length) {
+      log('no readable text found');
+      return status();
+    }
+    log(`starting at segment ${index} of ${state.segments.length} →`, preview(state.segments[index]?.text));
     state.playing = true;
     state.paused = false;
     speakCurrent();
@@ -534,7 +625,10 @@
         if (container?.closest?.('input, textarea, [contenteditable=""], [contenteditable="true"]')) return;
 
         const anchor = makeAnchor(range.startContainer, range.startOffset);
-        if (anchor) play({ anchor });
+        if (anchor) {
+          log('selection made while reading — jumping to it');
+          play({ anchor });
+        }
       }, 0);
     },
     true,

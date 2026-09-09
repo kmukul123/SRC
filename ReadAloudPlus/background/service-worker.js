@@ -1,4 +1,25 @@
+importScripts('/shared/settings.js');
+
 const INJECTABLE = /^https?:|^file:/;
+
+// Mirrors the content script's toggle. Service worker logs appear under
+// edge://extensions → Read Aloud Plus → "service worker".
+let debugLogging = false;
+
+function log(...args) {
+  if (debugLogging) console.log('[Read Aloud Plus SW]', ...args);
+}
+
+async function refreshDebugFlag() {
+  const { global } = await ReadAloudSettings.loadSettings();
+  debugLogging = Boolean(global.debugLogging);
+}
+
+refreshDebugFlag();
+chrome.storage.onChanged.addListener((changes) => {
+  const next = changes[ReadAloudSettings.STORAGE_KEY]?.newValue?.global?.debugLogging;
+  if (next !== undefined) debugLogging = Boolean(next);
+});
 
 const MENU_ITEMS = [
   // `page` alone disappears as soon as text is selected, so list every context explicitly.
@@ -36,11 +57,14 @@ async function ensureInjected(tabId, url) {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const command = MENU_COMMANDS[info.menuItemId];
   if (!command || !tab?.id) return;
+  log('menu click', info.menuItemId, '→', command, info.selectionText ? '(with selection)' : '');
   try {
-    await chrome.tabs.sendMessage(tab.id, { type: command });
-  } catch {
+    const response = await chrome.tabs.sendMessage(tab.id, { type: command });
+    log('content script responded', response);
+  } catch (error) {
     // Content script not present (page predates install) — inject and retry once.
     // The right-click target was never recorded, so fall back to reading from the top.
+    log('content script missing, injecting and retrying:', error.message);
     await ensureInjected(tab.id, tab.url);
     await chrome.tabs.sendMessage(tab.id, { type: command === 'playFromHere' ? 'play' : command });
   }

@@ -7,6 +7,7 @@ const DEFAULT_GLOBAL = {
   voiceURI: '',
   highlight: true,
   jumpOnSelect: true,
+  debugLogging: false,
 };
 
 const STORAGE_KEY = 'readAloudSettings';
@@ -69,6 +70,7 @@ async function resolveForSite(hostname) {
 
 globalThis.ReadAloudSettings = {
   DEFAULT_GLOBAL,
+  STORAGE_KEY,
   loadSettings,
   saveGlobal,
   saveForSite,

@@ -94,6 +94,14 @@ async function persist() {
   }
 }
 
+const playPauseEl = document.getElementById('playPause');
+
+function updatePlayPauseButton(playing, paused) {
+  const showPause = playing && !paused;
+  playPauseEl.textContent = showPause ? '⏸ Pause' : '▶ Play';
+  playPauseEl.title = `${showPause ? 'Pause' : 'Play'} (Alt+R)`;
+}
+
 async function command(type, label) {
   const result = await send({ type });
   if (!result?.ok) {
@@ -101,17 +109,23 @@ async function command(type, label) {
     return;
   }
   const { playing, paused, index, total } = result.response || {};
+  updatePlayPauseButton(playing, paused);
   if (total === 0) setStatus('No readable text found on this page.');
   else if (playing && !paused) setStatus(`${label} — segment ${index + 1} of ${total}`);
   else if (paused) setStatus(`Paused — segment ${index + 1} of ${total}`);
   else setStatus('Stopped');
 }
 
-document.getElementById('play').addEventListener('click', () => command('play', 'Reading'));
-document.getElementById('pause').addEventListener('click', () => command('pause', 'Paused'));
+playPauseEl.addEventListener('click', () => command('toggle', 'Reading'));
 document.getElementById('stop').addEventListener('click', () => command('stop', 'Stopped'));
 document.getElementById('next').addEventListener('click', () => command('skipNext', 'Reading'));
 document.getElementById('prev').addEventListener('click', () => command('skipPrev', 'Reading'));
+
+// Sync the button label with playback that may already be in progress from a
+// previous popup session or the keyboard shortcut.
+send({ type: 'status' }).then((result) => {
+  if (result?.ok && result.response) updatePlayPauseButton(result.response.playing, result.response.paused);
+});
 
 document.getElementById('openOptions').addEventListener('click', (event) => {
   event.preventDefault();

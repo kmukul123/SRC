@@ -666,6 +666,16 @@
       case 'stop':
         sendResponse(stop());
         return false;
+      case 'toggle':
+        if (state.paused) {
+          sendResponse(resume());
+        } else if (state.playing) {
+          sendResponse(pause());
+        } else {
+          play().then(sendResponse);
+          return true;
+        }
+        return false;
       case 'skipNext':
         sendResponse(skip(1));
         return false;

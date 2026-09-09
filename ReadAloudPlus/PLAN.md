@@ -23,7 +23,7 @@ Two consequences worth knowing:
 | File | Role |
 | --- | --- |
 | `manifest.json` | MV3 manifest — `storage`, `activeTab`, `scripting` permissions |
-| `background/service-worker.js` | Context menu items, on-demand injection fallback, routes popup → tab messages |
+| `background/service-worker.js` | Context menu items, keyboard shortcut (play/pause), on-demand injection fallback, routes popup → tab messages |
 | `content/reader.js` | Core engine: text extraction, segmentation, playback queue, highlighting |
 | `content/reader.css` | Word/sentence highlight styles (light + dark) |
 | `shared/settings.js` | Storage wrapper: global defaults, per-site overrides, resolution |
@@ -136,6 +136,7 @@ Work through these in order — each one isolates a different layer, so a failur
 - [ ] **CP8 — Transport controls.** Pause mid-sentence → speech stops; Play → resumes from the same place. Skip next/prev jumps a segment. Stop ends playback **and clears all highlighting from the page**.
 - [ ] **CP9 — DOM is restored.** After Stop, inspect the page in DevTools: no leftover `<span data-rap-wrap>` or `rap-word` elements should remain, and the visible text should be unchanged.
 - [ ] **CP10 — Per-site settings.** In the options page, under **Per-site overrides**, type site A's hostname and click *Add site override* (it starts from the current global Voice A/B, speed and pitch). Change its voice or speed there and reload site A — it uses the override; site B still uses the global default. Confirm the popup's Voice A/B/speed/pitch controls read/write that same override when you're on site A (its row in Options updates live). Remove the override in the options page — site A reverts to global defaults, and the popup on site A now edits the global settings again.
+- [ ] **CP10b — Keyboard shortcut.** Press `Alt+R` (`Option+R` on Mac) on a page with no reading in progress → playback starts. Press it again → pauses; again → resumes. If it doesn't fire, check `edge://extensions/shortcuts` (or `chrome://extensions/shortcuts`) for a conflict with another extension/OS shortcut and reassign there.
 - [ ] **CP11 — Settings persist.** Close the browser entirely, reopen, and confirm settings survived.
 - [ ] **CP12 — Graceful failures.** On `edge://settings` (a restricted page), pressing Play shows the error message in the popup rather than failing silently. On a page with no readable text, the status reads "No readable text found on this page."
 - [ ] **CP12b — Context menu.** Right-click directly on a word mid-paragraph → **Read aloud from here** starts at *that word*, not the top or the paragraph start. Right-click on padding/whitespace inside a paragraph → falls back to the paragraph's first segment. Select a passage, right-click → **Read selection aloud** reads only the selection; **Read aloud from here** starts at the first selected word and continues past the selection. **Stop reading aloud** halts playback and clears highlighting.

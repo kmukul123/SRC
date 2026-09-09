@@ -20,5 +20,13 @@
   "options_page": "options/options.html",
   "background": {
     "service_worker": "background/service-worker.js"
+  },
+  "commands": {
+    "toggle-read-aloud": {
+      "suggested_key": {
+        "default": "Alt+R"
+      },
+      "description": "Play/pause reading aloud"
+    }
   }
 }

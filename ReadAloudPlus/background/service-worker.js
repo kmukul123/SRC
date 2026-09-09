@@ -70,6 +70,21 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
+chrome.commands.onCommand.addListener(async (command, tab) => {
+  if (command !== 'toggle-read-aloud') return;
+  const activeTab = tab?.id ? tab : (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+  if (!activeTab?.id) return;
+  log('keyboard shortcut', command);
+  try {
+    await chrome.tabs.sendMessage(activeTab.id, { type: 'toggle' });
+  } catch (error) {
+    // Content script not present (page predates install) — inject and retry once.
+    log('content script missing, injecting and retrying:', error.message);
+    await ensureInjected(activeTab.id, activeTab.url);
+    await chrome.tabs.sendMessage(activeTab.id, { type: 'toggle' });
+  }
+});
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== 'command') return false;
   (async () => {

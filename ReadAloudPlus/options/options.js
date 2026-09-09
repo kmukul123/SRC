@@ -1,6 +1,7 @@
 const FIELDS = ['sentencePauseMs', 'commaPauseMs', 'otherPauseMs'];
 const els = {
-  voice: document.getElementById('voice'),
+  voiceA: document.getElementById('voiceA'),
+  voiceB: document.getElementById('voiceB'),
   rate: document.getElementById('rate'),
   rateOut: document.getElementById('rateOut'),
   pitch: document.getElementById('pitch'),
@@ -17,14 +18,19 @@ const els = {
 };
 const pauseEls = Object.fromEntries(FIELDS.map((id) => [id, document.getElementById(id)]));
 
-function populateVoices(selectedURI) {
-  const voices = speechSynthesis.getVoices();
-  els.voice.innerHTML = '';
-  els.voice.add(new Option('Browser default', ''));
+function fillVoiceSelect(select, selectedURI, voices) {
+  select.innerHTML = '';
+  select.add(new Option('Browser default', ''));
   for (const voice of voices) {
-    els.voice.add(new Option(`${voice.name} (${voice.lang})${voice.localService ? '' : ' — online'}`, voice.voiceURI));
+    select.add(new Option(`${voice.name} (${voice.lang})${voice.localService ? '' : ' — online'}`, voice.voiceURI));
   }
-  els.voice.value = voices.some((v) => v.voiceURI === selectedURI) ? selectedURI : '';
+  select.value = voices.some((v) => v.voiceURI === selectedURI) ? selectedURI : '';
+}
+
+function populateVoices(selectedAURI, selectedBURI) {
+  const voices = speechSynthesis.getVoices();
+  fillVoiceSelect(els.voiceA, selectedAURI, voices);
+  fillVoiceSelect(els.voiceB, selectedBURI, voices);
 
   const hasNatural = voices.some((v) => /natural|neural|premium|enhanced|online/i.test(v.name));
   if (voices.length && !hasNatural) {
@@ -37,12 +43,7 @@ function populateVoices(selectedURI) {
 
 function makeVoiceSelect(selectedURI) {
   const select = document.createElement('select');
-  const voices = speechSynthesis.getVoices();
-  select.add(new Option('Browser default', ''));
-  for (const voice of voices) {
-    select.add(new Option(`${voice.name} (${voice.lang})${voice.localService ? '' : ' — online'}`, voice.voiceURI));
-  }
-  select.value = voices.some((v) => v.voiceURI === selectedURI) ? selectedURI : '';
+  fillVoiceSelect(select, selectedURI, speechSynthesis.getVoices());
   return select;
 }
 
@@ -76,8 +77,11 @@ async function renderSites() {
     });
     header.append(name, remove);
 
-    const voice = makeVoiceSelect(effective.voiceURI);
-    voice.addEventListener('change', () => ReadAloudSettings.saveForSite(host, { voiceURI: voice.value }));
+    const voiceA = makeVoiceSelect(effective.voiceAURI);
+    voiceA.addEventListener('change', () => ReadAloudSettings.saveForSite(host, { voiceAURI: voiceA.value }));
+
+    const voiceB = makeVoiceSelect(effective.voiceBURI);
+    voiceB.addEventListener('change', () => ReadAloudSettings.saveForSite(host, { voiceBURI: voiceB.value }));
 
     const rate = document.createElement('input');
     rate.type = 'range';
@@ -107,7 +111,12 @@ async function renderSites() {
 
     const controls = document.createElement('div');
     controls.className = 'site-controls';
-    controls.append(labeled('Voice', voice), labeled('Speed', rate, rateOut), labeled('Pitch', pitch, pitchOut));
+    controls.append(
+      labeled('Voice A', voiceA),
+      labeled('Voice B', voiceB),
+      labeled('Speed', rate, rateOut),
+      labeled('Pitch', pitch, pitchOut),
+    );
 
     li.append(header, controls);
     els.siteList.appendChild(li);
@@ -118,7 +127,12 @@ els.addSite.addEventListener('click', async () => {
   const host = els.newSiteHost.value.trim().toLowerCase();
   if (!host) return;
   const { global } = await ReadAloudSettings.loadSettings();
-  await ReadAloudSettings.saveForSite(host, { voiceURI: global.voiceURI, rate: global.rate, pitch: global.pitch });
+  await ReadAloudSettings.saveForSite(host, {
+    voiceAURI: global.voiceAURI,
+    voiceBURI: global.voiceBURI,
+    rate: global.rate,
+    pitch: global.pitch,
+  });
   els.newSiteHost.value = '';
   renderSites();
 });
@@ -133,7 +147,7 @@ async function load() {
   els.jumpOnSelect.checked = global.jumpOnSelect;
   els.debugLogging.checked = global.debugLogging;
   for (const field of FIELDS) pauseEls[field].value = global[field];
-  populateVoices(global.voiceURI);
+  populateVoices(global.voiceAURI, global.voiceBURI);
   renderSites();
 }
 
@@ -141,7 +155,8 @@ async function persist() {
   const patch = {
     rate: Number(els.rate.value),
     pitch: Number(els.pitch.value),
-    voiceURI: els.voice.value,
+    voiceAURI: els.voiceA.value,
+    voiceBURI: els.voiceB.value,
     highlight: els.highlight.checked,
     jumpOnSelect: els.jumpOnSelect.checked,
     debugLogging: els.debugLogging.checked,
@@ -159,7 +174,8 @@ async function persist() {
 for (const el of [
   els.rate,
   els.pitch,
-  els.voice,
+  els.voiceA,
+  els.voiceB,
   els.highlight,
   els.jumpOnSelect,
   els.debugLogging,
@@ -175,7 +191,7 @@ els.pitch.addEventListener('input', () => {
 });
 
 speechSynthesis.addEventListener('voiceschanged', () => {
-  populateVoices(els.voice.value);
+  populateVoices(els.voiceA.value, els.voiceB.value);
   renderSites();
 });
 load();

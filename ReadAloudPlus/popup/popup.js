@@ -1,6 +1,7 @@
 const els = {
   status: document.getElementById('status'),
-  voice: document.getElementById('voice'),
+  voiceA: document.getElementById('voiceA'),
+  voiceB: document.getElementById('voiceB'),
   rate: document.getElementById('rate'),
   rateOut: document.getElementById('rateOut'),
   pitch: document.getElementById('pitch'),
@@ -28,16 +29,20 @@ async function currentHostname() {
   }
 }
 
-function populateVoices(selectedURI) {
-  const voices = speechSynthesis.getVoices();
-  els.voice.innerHTML = '';
-  const auto = new Option('Browser default', '');
-  els.voice.add(auto);
+function fillVoiceSelect(select, selectedURI, voices) {
+  select.innerHTML = '';
+  select.add(new Option('Browser default', ''));
   for (const voice of voices) {
     const label = `${voice.name} (${voice.lang})${voice.localService ? '' : ' — online'}`;
-    els.voice.add(new Option(label, voice.voiceURI));
+    select.add(new Option(label, voice.voiceURI));
   }
-  els.voice.value = voices.some((v) => v.voiceURI === selectedURI) ? selectedURI : '';
+  select.value = voices.some((v) => v.voiceURI === selectedURI) ? selectedURI : '';
+}
+
+function populateVoices(selectedAURI, selectedBURI) {
+  const voices = speechSynthesis.getVoices();
+  fillVoiceSelect(els.voiceA, selectedAURI, voices);
+  fillVoiceSelect(els.voiceB, selectedBURI, voices);
 
   const hasNatural = voices.some((v) => /natural|neural|premium|enhanced|online/i.test(v.name));
   if (voices.length && !hasNatural) {
@@ -59,14 +64,15 @@ async function refreshFromSettings() {
   els.rateOut.value = `${Number(effective.rate).toFixed(2)}x`;
   els.pitch.value = effective.pitch;
   els.pitchOut.value = Number(effective.pitch).toFixed(2);
-  populateVoices(effective.voiceURI);
+  populateVoices(effective.voiceAURI, effective.voiceBURI);
 }
 
 async function persist() {
   const patch = {
     rate: Number(els.rate.value),
     pitch: Number(els.pitch.value),
-    voiceURI: els.voice.value,
+    voiceAURI: els.voiceA.value,
+    voiceBURI: els.voiceB.value,
   };
 
   // If this site already has its own overrides (set via the options page), keep
@@ -112,7 +118,7 @@ document.getElementById('openOptions').addEventListener('click', (event) => {
   chrome.runtime.openOptionsPage();
 });
 
-for (const el of [els.rate, els.pitch, els.voice]) {
+for (const el of [els.rate, els.pitch, els.voiceA, els.voiceB]) {
   el.addEventListener('change', persist);
 }
 els.rate.addEventListener('input', () => {
@@ -122,5 +128,5 @@ els.pitch.addEventListener('input', () => {
   els.pitchOut.value = Number(els.pitch.value).toFixed(2);
 });
 
-speechSynthesis.addEventListener('voiceschanged', () => populateVoices(els.voice.value));
+speechSynthesis.addEventListener('voiceschanged', () => populateVoices(els.voiceA.value, els.voiceB.value));
 refreshFromSettings();

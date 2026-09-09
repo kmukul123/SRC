@@ -194,6 +194,11 @@
     return settings.otherPauseMs;
   }
 
+  function endsSentence(text) {
+    const trimmed = text.trimEnd().replace(/["'”’)\]}»]+$/u, '');
+    return /[.!?…。！？]/u.test(trimmed.slice(-1));
+  }
+
   // The content-root heuristic can exclude the very text the user right-clicked (sidebars,
   // comments, pages with a misleading <article>). Widen to <body> rather than silently
   // starting somewhere else entirely.
@@ -211,11 +216,23 @@
     const root = pickRoot(range, focusEl);
     const textNodes = collectTextNodes(root, range);
     const segments = [];
+    // Tracks which sentence each segment belongs to, counted across the whole reading
+    // session (not reset per text node), so alternating voices stays in a steady A/B/A/B
+    // pattern instead of resetting to voice A at the start of every element.
+    let sentenceIndex = 0;
+    // Intl.Segmenter only sees one text node's own string, so a sentence split across
+    // nodes by inline markup (a link, <b>, <em>, …) looks like several complete sentences
+    // to it. If the previous chunk didn't end in terminal punctuation, the next node's
+    // first chunk is really a continuation of the same sentence, not a new one.
+    let sentenceOpen = false;
 
     for (const node of textNodes) {
       const raw = node.nodeValue;
-      for (const sentence of splitSentences(raw)) {
+      const sentences = splitSentences(raw);
+      for (let i = 0; i < sentences.length; i++) {
+        const sentence = sentences[i];
         if (!sentence.text.trim()) continue;
+        if (!(i === 0 && sentenceOpen)) sentenceIndex++;
         // Sub-split on internal commas/semicolons/colons so each clause can carry its own pause.
         const clauseRegex = /[^,;:]+[,;:]?/g;
         let clause;
@@ -227,8 +244,10 @@
             nodeStart: sentence.start + clause.index,
             text,
             pauseMs: pauseAfter(text, settings),
+            sentenceIndex: sentenceIndex - 1,
           });
         }
+        sentenceOpen = !endsSentence(sentence.text);
       }
     }
     log(`built ${segments.length} segments from`, root, `(${textNodes.length} text nodes)`);
@@ -355,9 +374,12 @@
     state.fallbackTimer = null;
   }
 
-  function pickVoice() {
-    if (!state.settings.voiceURI) return null;
-    return speechSynthesis.getVoices().find((v) => v.voiceURI === state.settings.voiceURI) || null;
+  // Alternates by sentence: even sentenceIndex speaks with Voice A, odd with Voice B.
+  // If both are unset or the same voiceURI, this naturally never actually switches.
+  function pickVoiceFor(segment) {
+    const uri = segment.sentenceIndex % 2 === 0 ? state.settings.voiceAURI : state.settings.voiceBURI;
+    if (!uri) return null;
+    return speechSynthesis.getVoices().find((v) => v.voiceURI === uri) || null;
   }
 
   function speakCurrent() {
@@ -378,7 +400,7 @@
     const utterance = new SpeechSynthesisUtterance(segment.text);
     utterance.rate = state.settings.rate;
     utterance.pitch = state.settings.pitch;
-    const voice = pickVoice();
+    const voice = pickVoiceFor(segment);
     if (voice) {
       utterance.voice = voice;
       utterance.lang = voice.lang;
@@ -541,7 +563,8 @@
       previous &&
       (previous.rate !== state.settings.rate ||
         previous.pitch !== state.settings.pitch ||
-        previous.voiceURI !== state.settings.voiceURI);
+        previous.voiceAURI !== state.settings.voiceAURI ||
+        previous.voiceBURI !== state.settings.voiceBURI);
 
     if (shouldRestart) {
       log('voice/rate/pitch changed while reading — restarting the current segment with the new settings');

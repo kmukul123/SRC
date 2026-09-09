@@ -38,7 +38,11 @@ Two consequences worth knowing:
 4. **Wrap words** — the current segment's text is swapped for a `<span>` of per-word spans so a
    word can be highlighted; the original DOM is restored on stop (`unwrapAll`).
 5. **Speak** — one utterance per clause (not per word — per-word utterances destroy intonation),
-   with the configured pause inserted via `setTimeout` between them.
+   with the configured pause inserted via `setTimeout` between them. Each segment also records
+   which sentence it belongs to (counted across the whole page, not reset per element); the
+   utterance's voice alternates Voice A / Voice B by that sentence number, so a multi-clause
+   sentence always speaks in one voice. If Voice A and Voice B are the same (or both unset), this
+   never actually switches — no separate "one voice" mode is needed.
 6. **Highlight** — `boundary` events map `charIndex` → word span. If no boundary event arrives
    within 400 ms (some voices don't fire them), a rate-derived timer advances the highlight instead.
 7. **Live voice/rate/pitch changes** — `SpeechSynthesisUtterance` properties can't change once
@@ -117,15 +121,16 @@ Restart the browser after installing voices before they appear in the list.
 Work through these in order — each one isolates a different layer, so a failure tells you where to look.
 
 - [ ] **CP1 — Extension loads.** Card appears on `edge://extensions` with no red **Errors** button; icon is visible in the toolbar.
-- [ ] **CP2 — Popup renders.** Clicking the icon opens the popup; the voice dropdown is populated with system voices (not empty). If empty, reopen the popup — voices load asynchronously via `voiceschanged`.
+- [ ] **CP2 — Popup renders.** Clicking the icon opens the popup; the Voice A and Voice B dropdowns are both populated with system voices (not empty). If empty, reopen the popup — voices load asynchronously via `voiceschanged`.
 - [ ] **CP3 — Basic playback.** On a Wikipedia article, click **Play**. Speech starts, and the status line shows `Reading — segment N of M`.
 - [ ] **CP4 — Word highlighting.** While reading, individual words highlight in sync with the speech and the page auto-scrolls to follow. Try both a local voice and an online/neural voice — if a voice doesn't fire `boundary` events, the timer fallback should still advance the highlight rather than freezing on word one.
 - [ ] **CP5 — Sentence pause works.** Set *Sentence pause* to `1500` ms, press Play, and confirm audibly longer gaps at full stops. Set it to `0` and confirm the gaps disappear.
 - [ ] **CP6 — Comma pause works.** Set *Comma pause* to `1200` ms and read a comma-heavy paragraph; confirm mid-sentence gaps lengthen independently of sentence pauses.
-- [ ] **CP7 — Voice / rate / pitch.** While reading, change Speed in the popup — the current segment restarts immediately, audibly faster/slower, without needing Stop/Play. Same for Pitch and Voice. Word highlighting keeps working on the restarted segment.
+- [ ] **CP7 — Voice / rate / pitch.** While reading, change Speed in the popup — the current segment restarts immediately, audibly faster/slower, without needing Stop/Play. Same for Pitch and Voice A/B. Word highlighting keeps working on the restarted segment.
+- [ ] **CP7b — Two-voice alternation.** Set Voice A and Voice B to two different voices, press Play on a multi-sentence paragraph, and confirm the voice audibly alternates every sentence (a multi-clause sentence — with commas — stays in one voice throughout, and so does a sentence containing a link or bold/italic text). Set Voice A and Voice B to the *same* voice and confirm it reads with just that one voice, no switching.
 - [ ] **CP8 — Transport controls.** Pause mid-sentence → speech stops; Play → resumes from the same place. Skip next/prev jumps a segment. Stop ends playback **and clears all highlighting from the page**.
 - [ ] **CP9 — DOM is restored.** After Stop, inspect the page in DevTools: no leftover `<span data-rap-wrap>` or `rap-word` elements should remain, and the visible text should be unchanged.
-- [ ] **CP10 — Per-site settings.** In the options page, under **Per-site overrides**, type site A's hostname and click *Add site override* (it starts from the current global voice/speed/pitch). Change its voice or speed there and reload site A — it uses the override; site B still uses the global default. Confirm the popup's voice/speed/pitch controls read/write that same override when you're on site A (its *Add site override* row updates live). Remove the override in the options page — site A reverts to global defaults, and the popup on site A now edits the global settings again.
+- [ ] **CP10 — Per-site settings.** In the options page, under **Per-site overrides**, type site A's hostname and click *Add site override* (it starts from the current global Voice A/B, speed and pitch). Change its voice or speed there and reload site A — it uses the override; site B still uses the global default. Confirm the popup's Voice A/B/speed/pitch controls read/write that same override when you're on site A (its row in Options updates live). Remove the override in the options page — site A reverts to global defaults, and the popup on site A now edits the global settings again.
 - [ ] **CP11 — Settings persist.** Close the browser entirely, reopen, and confirm settings survived.
 - [ ] **CP12 — Graceful failures.** On `edge://settings` (a restricted page), pressing Play shows the error message in the popup rather than failing silently. On a page with no readable text, the status reads "No readable text found on this page."
 - [ ] **CP12b — Context menu.** Right-click directly on a word mid-paragraph → **Read aloud from here** starts at *that word*, not the top or the paragraph start. Right-click on padding/whitespace inside a paragraph → falls back to the paragraph's first segment. Select a passage, right-click → **Read selection aloud** reads only the selection; **Read aloud from here** starts at the first selected word and continues past the selection. **Stop reading aloud** halts playback and clears highlighting.

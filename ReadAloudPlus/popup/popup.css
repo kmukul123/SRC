@@ -87,3 +87,8 @@ legend {
   margin-top: 10px;
   color: inherit;
 }
+
+.muted {
+  opacity: 0.7;
+  font-weight: normal;
+}

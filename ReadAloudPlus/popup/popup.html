@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Read Aloud Plus</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="controls">
+      <button id="prev" title="Previous segment">⏮</button>
+      <button id="play" class="primary" title="Play">▶ Play</button>
+      <button id="pause" title="Pause">⏸</button>
+      <button id="stop" title="Stop">⏹</button>
+      <button id="next" title="Next segment">⏭</button>
+    </div>
+
+    <p id="status" class="status">Ready</p>
+
+    <label>
+      Voice
+      <select id="voice"></select>
+    </label>
+
+    <label>
+      Speed <output id="rateOut"></output>
+      <input id="rate" type="range" min="0.5" max="2" step="0.05" />
+    </label>
+
+    <label>
+      Pitch <output id="pitchOut"></output>
+      <input id="pitch" type="range" min="0.5" max="2" step="0.05" />
+    </label>
+
+    <fieldset>
+      <legend>Pauses (ms)</legend>
+      <label class="inline">Sentence <input id="sentencePauseMs" type="number" min="0" max="5000" step="50" /></label>
+      <label class="inline">Comma <input id="commaPauseMs" type="number" min="0" max="5000" step="50" /></label>
+      <label class="inline">Other <input id="otherPauseMs" type="number" min="0" max="5000" step="50" /></label>
+    </fieldset>
+
+    <label class="inline">
+      <input id="highlight" type="checkbox" /> Highlight words while reading
+    </label>
+
+    <label class="inline">
+      <input id="perSite" type="checkbox" /> Save these settings for <span id="host">this site</span> only
+    </label>
+
+    <p id="voiceHint" class="hint" hidden></p>
+
+    <a href="#" id="openOptions" class="options-link">All settings</a>
+
+    <script src="../shared/settings.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

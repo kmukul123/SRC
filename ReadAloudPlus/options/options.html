@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Read Aloud Plus — Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <h1>Read Aloud Plus</h1>
+
+    <section>
+      <h2>Global defaults</h2>
+      <label>Voice <select id="voice"></select></label>
+      <label>Speed <output id="rateOut"></output>
+        <input id="rate" type="range" min="0.5" max="2" step="0.05" />
+      </label>
+      <label>Pitch <output id="pitchOut"></output>
+        <input id="pitch" type="range" min="0.5" max="2" step="0.05" />
+      </label>
+      <label>Sentence pause (ms) <input id="sentencePauseMs" type="number" min="0" max="5000" step="50" /></label>
+      <label>Comma pause (ms) <input id="commaPauseMs" type="number" min="0" max="5000" step="50" /></label>
+      <label>Other punctuation pause (ms) <input id="otherPauseMs" type="number" min="0" max="5000" step="50" /></label>
+      <label class="inline"><input id="highlight" type="checkbox" /> Highlight words while reading</label>
+      <p id="voiceHint" class="hint" hidden></p>
+      <p id="saved" class="saved" hidden>Saved</p>
+    </section>
+
+    <section>
+      <h2>Per-site overrides</h2>
+      <p class="muted">Sites with their own settings. Removing an override makes the site use the global defaults.</p>
+      <ul id="siteList"></ul>
+      <p id="noSites" class="muted" hidden>No per-site overrides yet.</p>
+    </section>
+
+    <script src="../shared/settings.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

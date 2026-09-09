@@ -95,12 +95,35 @@ async function persist() {
 }
 
 const playPauseEl = document.getElementById('playPause');
+const shortcutHintEl = document.getElementById('shortcutHint');
+const shortcutKeyEl = document.getElementById('shortcutKey');
+
+let shortcutLabel = '';
+let lastPlaying = false;
+let lastPaused = false;
 
 function updatePlayPauseButton(playing, paused) {
+  lastPlaying = playing;
+  lastPaused = paused;
   const showPause = playing && !paused;
   playPauseEl.textContent = showPause ? '⏸ Pause' : '▶ Play';
-  playPauseEl.title = `${showPause ? 'Pause' : 'Play'} (Alt+R)`;
+  const keyPart = shortcutLabel ? ` (${shortcutLabel})` : '';
+  playPauseEl.title = `${showPause ? 'Pause' : 'Play'}${keyPart}`;
 }
+
+// Reflects whatever the user actually has bound at chrome://extensions/shortcuts, since the
+// manifest's suggested_key is only a starting default and may have been reassigned or cleared.
+chrome.commands.getAll().then((commands) => {
+  const bound = commands.find((c) => c.name === 'toggle-read-aloud')?.shortcut || '';
+  shortcutLabel = bound;
+  if (bound) {
+    shortcutKeyEl.textContent = bound;
+    shortcutHintEl.hidden = false;
+  } else {
+    shortcutHintEl.hidden = true;
+  }
+  updatePlayPauseButton(lastPlaying, lastPaused);
+});
 
 async function command(type, label) {
   const result = await send({ type });

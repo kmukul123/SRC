@@ -374,6 +374,22 @@
     state.fallbackTimer = null;
   }
 
+  // On a page's very first speechSynthesis use, getVoices() can come back empty until the
+  // async 'voiceschanged' event fires — if play() starts before then, pickVoiceFor() finds
+  // neither Voice A nor Voice B and both silently fall back to the same browser default,
+  // looking like alternation is broken. Wait once per page for the real list to arrive.
+  function ensureVoicesLoaded() {
+    if (speechSynthesis.getVoices().length) return Promise.resolve();
+    return new Promise((resolve) => {
+      const done = () => {
+        speechSynthesis.removeEventListener('voiceschanged', done);
+        resolve();
+      };
+      speechSynthesis.addEventListener('voiceschanged', done);
+      setTimeout(done, 500);
+    });
+  }
+
   // Alternates by sentence: even sentenceIndex speaks with Voice A, odd with Voice B.
   // If both are unset or the same voiceURI, this naturally never actually switches.
   function pickVoiceFor(segment) {
@@ -545,6 +561,7 @@
     stop();
     state.settings = await ReadAloudSettings.resolveForSite(location.hostname);
     debugLogging = Boolean(state.settings.debugLogging);
+    await ensureVoicesLoaded();
     log('play', { fromHere: Boolean(options.fromHere), selection: Boolean(options.selection), anchor: Boolean(anchor) });
     state.segments = buildSegments(state.settings, range, anchor?.element || startFrom);
 

@@ -6,6 +6,7 @@ const els = {
   pitch: document.getElementById('pitch'),
   pitchOut: document.getElementById('pitchOut'),
   highlight: document.getElementById('highlight'),
+  jumpOnSelect: document.getElementById('jumpOnSelect'),
   perSite: document.getElementById('perSite'),
   host: document.getElementById('host'),
   voiceHint: document.getElementById('voiceHint'),
@@ -67,6 +68,7 @@ async function loadSettings() {
   els.pitch.value = effective.pitch;
   els.pitchOut.value = Number(effective.pitch).toFixed(2);
   els.highlight.checked = effective.highlight;
+  els.jumpOnSelect.checked = effective.jumpOnSelect;
   for (const field of PAUSE_FIELDS) pauseEls[field].value = effective[field];
   populateVoices(effective.voiceURI);
 }
@@ -77,6 +79,7 @@ async function persist() {
     pitch: Number(els.pitch.value),
     voiceURI: els.voice.value,
     highlight: els.highlight.checked,
+    jumpOnSelect: els.jumpOnSelect.checked,
   };
   for (const field of PAUSE_FIELDS) patch[field] = Number(pauseEls[field].value);
 
@@ -114,7 +117,7 @@ document.getElementById('openOptions').addEventListener('click', (event) => {
   chrome.runtime.openOptionsPage();
 });
 
-for (const el of [els.rate, els.pitch, els.voice, els.highlight, els.perSite, ...Object.values(pauseEls)]) {
+for (const el of [els.rate, els.pitch, els.voice, els.highlight, els.jumpOnSelect, els.perSite, ...Object.values(pauseEls)]) {
   el.addEventListener('change', persist);
 }
 els.rate.addEventListener('input', () => {

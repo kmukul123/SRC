@@ -88,6 +88,7 @@ Work through these in order — each one isolates a different layer, so a failur
 - [ ] **CP11 — Settings persist.** Close the browser entirely, reopen, and confirm settings survived.
 - [ ] **CP12 — Graceful failures.** On `edge://settings` (a restricted page), pressing Play shows the error message in the popup rather than failing silently. On a page with no readable text, the status reads "No readable text found on this page."
 - [ ] **CP12b — Context menu.** Right-click directly on a word mid-paragraph → **Read aloud from here** starts at *that word*, not the top or the paragraph start. Right-click on padding/whitespace inside a paragraph → falls back to the paragraph's first segment. Select a passage, right-click → **Read selection aloud** reads only the selection; **Read aloud from here** starts at the first selected word and continues past the selection. **Stop reading aloud** halts playback and clears highlighting.
+- [ ] **CP12c — Select-to-jump.** While reading, double-click a word further down the page → playback restarts from that word. Select a phrase → playback jumps to its first word. Select text inside a form field or search box → playback is *not* hijacked. Untick *Selecting text jumps reading to it* → selecting text no longer affects playback (settings are read at play start, so press Stop then Play after changing it).
 - [ ] **CP13 — Chrome parity.** Repeat CP1, CP3, CP5 in Chrome.
 - [ ] **CP14 — Mac smoke test** (if available). Voice list populates from macOS voices; playback and highlighting work.
 
@@ -96,5 +97,4 @@ Work through these in order — each one isolates a different layer, so a failur
 - No cloud TTS (Azure/Google) integration, so no true SSML prosody control; pauses are chunk-and-delay.
 - Content extraction is heuristic — unusual page layouts may read navigation text or miss content.
 - `speechSynthesis` has a known Chromium quirk where very long utterances can cut off; segmenting per clause largely avoids this.
-- **Read aloud from here** resolves the exact word via `caretRangeFromPoint` at right-click time. If you right-click on text that was already read *during the current session* (it's still wrapped in highlight spans, which are only unwrapped on Stop), the anchor can't be matched after the DOM is rebuilt and it degrades to starting at that paragraph. Pressing Stop first restores precision.
 - Chromium may suppress speech on a page the user hasn't interacted with yet. If Play appears to do nothing on a freshly opened tab, click anywhere on the page once, then press Play.

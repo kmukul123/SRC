@@ -30,13 +30,38 @@
   };
 
   // Resolve a viewport point to the exact text node + character offset under it.
-  function caretAnchorFromPoint(x, y) {
+  function caretPointFromPoint(x, y) {
     if (document.caretRangeFromPoint) {
       const range = document.caretRangeFromPoint(x, y);
       if (range) return { node: range.startContainer, offset: range.startOffset };
     } else if (document.caretPositionFromPoint) {
       const position = document.caretPositionFromPoint(x, y);
       if (position) return { node: position.offsetNode, offset: position.offset };
+    }
+    return null;
+  }
+
+  // Highlight wrappers are torn down and the DOM rebuilt on every (re)start, so a raw
+  // text-node reference goes stale. Unwrapping preserves textContent exactly, so an
+  // offset measured within a stable ancestor element survives the rebuild instead.
+  function stableElementFor(node) {
+    let el = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+    const wrapper = el?.closest?.(`[${WRAPPER_ATTR}]`);
+    if (wrapper?.parentElement) el = wrapper.parentElement;
+    return el;
+  }
+
+  function makeAnchor(node, offset) {
+    if (!node || node.nodeType !== Node.TEXT_NODE) return null;
+    const element = stableElementFor(node);
+    if (!element) return null;
+
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    let total = 0;
+    let current;
+    while ((current = walker.nextNode())) {
+      if (current === node) return { element, offset: total + offset };
+      total += current.nodeValue.length;
     }
     return null;
   }
@@ -57,9 +82,10 @@
         selection && selection.rangeCount && !selection.isCollapsed ? selection.getRangeAt(0).cloneRange() : null;
 
       // A selection means "start at the first selected word"; otherwise use the click point.
-      state.lastContextAnchor = state.lastContextRange
+      const point = state.lastContextRange
         ? { node: state.lastContextRange.startContainer, offset: state.lastContextRange.startOffset }
-        : caretAnchorFromPoint(event.clientX, event.clientY);
+        : caretPointFromPoint(event.clientX, event.clientY);
+      state.lastContextAnchor = point ? makeAnchor(point.node, point.offset) : null;
     },
     true,
   );
@@ -341,21 +367,34 @@
     segment.text = text.slice(start);
   }
 
-  // Segment containing the clicked/selected word, trimmed to start at that word.
-  // Returns -1 when the anchor can't be matched (e.g. it points into text that was
-  // wrapped for highlighting during an earlier read and no longer exists as-is).
+  // Segment containing the anchored word, trimmed to start at that word. Returns -1 when
+  // the anchor can't be matched at all, so the caller can fall back to the clicked element.
   function indexAtAnchor(anchor) {
-    if (!anchor?.node || anchor.node.nodeType !== Node.TEXT_NODE) return -1;
+    if (!anchor?.element || !document.contains(anchor.element)) return -1;
+
+    const walker = document.createTreeWalker(anchor.element, NodeFilter.SHOW_TEXT);
+    const baseOffsets = new Map();
+    let total = 0;
+    let node;
+    while ((node = walker.nextNode())) {
+      baseOffsets.set(node, total);
+      total += node.nodeValue.length;
+    }
+
+    let following = -1;
     for (let i = 0; i < state.segments.length; i++) {
       const segment = state.segments[i];
-      if (segment.node !== anchor.node) continue;
-      const end = segment.nodeStart + segment.text.length;
-      if (anchor.offset >= segment.nodeStart && anchor.offset < end) {
-        trimToWord(segment, anchor.offset - segment.nodeStart);
+      const base = baseOffsets.get(segment.node);
+      if (base === undefined) continue;
+      const start = base + segment.nodeStart;
+      if (anchor.offset >= start && anchor.offset < start + segment.text.length) {
+        trimToWord(segment, anchor.offset - start);
         return i;
       }
+      // Anchor landed between segments (whitespace, skipped markup) — take the next one.
+      if (following < 0 && start >= anchor.offset) following = i;
     }
-    return -1;
+    return following;
   }
 
   // First segment at or after the right-clicked element, in document order.
@@ -371,7 +410,7 @@
   }
 
   async function play(options = {}) {
-    const anchor = options.fromHere ? state.lastContextAnchor : null;
+    const anchor = options.anchor || (options.fromHere ? state.lastContextAnchor : null);
     const startFrom = options.fromHere ? state.lastContextTarget : null;
     const range = options.selection ? state.lastContextRange : null;
 
@@ -476,6 +515,30 @@
         return false;
     }
   });
+
+  // Selecting text mid-read jumps playback to the first selected word.
+  document.addEventListener(
+    'mouseup',
+    () => {
+      if (!state.playing || !state.settings?.jumpOnSelect) return;
+      // Selection isn't finalised until after the mouseup handlers run.
+      setTimeout(() => {
+        if (!state.playing) return;
+        const selection = window.getSelection();
+        if (!selection || !selection.rangeCount || selection.isCollapsed) return;
+
+        const range = selection.getRangeAt(0);
+        const container =
+          range.startContainer.nodeType === Node.TEXT_NODE ? range.startContainer.parentElement : range.startContainer;
+        // Don't hijack selections inside form fields or editors.
+        if (container?.closest?.('input, textarea, [contenteditable=""], [contenteditable="true"]')) return;
+
+        const anchor = makeAnchor(range.startContainer, range.startOffset);
+        if (anchor) play({ anchor });
+      }, 0);
+    },
+    true,
+  );
 
   window.addEventListener('pagehide', stop);
 })();

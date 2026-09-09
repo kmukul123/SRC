@@ -6,6 +6,7 @@ const DEFAULT_GLOBAL = {
   pitch: 1,
   voiceURI: '',
   highlight: true,
+  jumpOnSelect: true,
 };
 
 const STORAGE_KEY = 'readAloudSettings';

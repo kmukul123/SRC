@@ -1,0 +1,151 @@
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px;
+  font: 14px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+h1 {
+  font-size: 20px;
+}
+
+h2 {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+section {
+  margin-bottom: 28px;
+  padding: 16px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 8px;
+}
+
+label {
+  display: block;
+  margin: 10px 0;
+}
+
+label.inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+select,
+input[type='range'] {
+  width: 100%;
+  margin-top: 4px;
+}
+
+input[type='number'] {
+  width: 90px;
+  margin-left: 8px;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(128, 128, 128, 0.25);
+}
+
+li button {
+  padding: 4px 10px;
+  cursor: pointer;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+}
+
+.muted {
+  opacity: 0.7;
+}
+
+.hint {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 193, 7, 0.18);
+}
+
+.saved {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.add-site,
+.add-dict {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.add-site input,
+.add-dict input {
+  flex: 1 1 auto;
+  min-width: 120px;
+}
+
+.add-site button,
+.add-dict button {
+  cursor: pointer;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  padding: 4px 10px;
+}
+
+.dict-word {
+  font-weight: 600;
+}
+
+li.site-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.site-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.site-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.site-controls select {
+  width: auto;
+  margin-top: 0;
+}
+
+.site-controls input[type='range'] {
+  width: 90px;
+  margin-top: 0;
+}

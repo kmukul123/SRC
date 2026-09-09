@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Read Aloud Plus</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="controls">
+      <button id="prev" title="Previous segment">⏮</button>
+      <button id="playPause" class="primary" title="Play (Alt+R)">▶ Play</button>
+      <button id="stop" title="Stop">⏹</button>
+      <button id="next" title="Next segment">⏭</button>
+    </div>
+
+    <p id="status" class="status">Ready</p>
+    <p id="shortcutHint" class="muted shortcut-hint">Shortcut: <kbd id="shortcutKey">Alt+R</kbd> play/pause</p>
+
+    <label>
+      Voice A <span class="muted">(odd sentences)</span>
+      <select id="voiceA"></select>
+    </label>
+
+    <label>
+      Voice B <span class="muted">(even sentences)</span>
+      <select id="voiceB"></select>
+    </label>
+
+    <label>
+      Speed <output id="rateOut"></output>
+      <input id="rate" type="range" min="0.5" max="2" step="0.05" />
+    </label>
+
+    <label>
+      Pitch <output id="pitchOut"></output>
+      <input id="pitch" type="range" min="0.5" max="2" step="0.05" />
+    </label>
+
+    <p id="voiceHint" class="hint" hidden></p>
+
+    <a href="#" id="openOptions" class="options-link">All settings</a>
+
+    <script src="../shared/settings.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,14 +1,8 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Configuration;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace OutlookRemindersOntop
@@ -16,9 +10,13 @@ namespace OutlookRemindersOntop
     public partial class OutlookRemindersOnTop : Form
     {
         WindowWatcher windowWatcher;
+        ActivitySimulator activitySimulator;
         Random random = new Random();
-        public OutlookRemindersOnTop()
+        private string _monitorUntilText;
+
+        public OutlookRemindersOnTop(string monitorUntilText)
         {
+            this._monitorUntilText = monitorUntilText;
             InitializeComponent();
         }
         private delegate void SafeCallDelegate(string text);
@@ -26,16 +24,23 @@ namespace OutlookRemindersOntop
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            if (DateTime.Now > new DateTime(2021, 10, 1))
+            if (DateTime.Now > new DateTime(2028, 10, 1))
             {
                 var url = "https://1drv.ms/f/s!AmaHAXM9ZhPhaYN972FkhyTLHO8";
-                Process.Start(url);
-                MessageBox.Show($@"Please Get new version from
+                DialogResult result = MessageBox.Show($@"Please Get new version from
 {url}
-The site should open in your browser", "Expired:");
+Click OK to open the site in your browser.", "Expired:", MessageBoxButtons.OKCancel);
+
+                if (result == DialogResult.OK)
+                {
+                    Process.Start(url);
+                }
                 //Environment.Exit(1);
                 //return;
             }
+            this.labelhours.Visible = false;
+            this.checkBoxMonitor.Visible = false;
+            this.textBoxHours.Visible = false;
             toolStripStatusLabel1.Spring = true;
             statusStrip1.LayoutStyle = ToolStripLayoutStyle.Flow;
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -47,7 +52,13 @@ The site should open in your browser", "Expired:");
 
             Logger.notifyError = this.NotifyMessage;
             windowWatcher = new WindowWatcher();
+            if (_monitorUntilText != null)
+            {
+                activitySimulator = new ActivitySimulator(_monitorUntilText);
+                activitySimulator.timerEnabled = _monitorUntilText != null;
+            }
             notifyIcon1.Icon = SystemIcons.Application;
+            this.checkBoxstartup.Hide();
 
             windowWatcher.WindowFoundHandler += WindowWatcher_WindowFoundHandler;
             toolTip1.SetToolTip(donateButton, "please support us and donate for a coffee\nPart of your donations are also donated to charity\nThanks");
@@ -57,7 +68,7 @@ The site should open in your browser", "Expired:");
         private void WindowWatcher_WindowFoundHandler(object sender, WindowFoundEventArgs e)
         {
             if (!e.window.WasVisibleOnScreen)
-                this.NotifyMessage($"Brought { e.window.WndProcess}'s window with title {e.window.Title} on top {DateTime.Now.ToShortTimeString()}");
+                this.NotifyMessage($"Brought {e.window.WndProcess}'s window with title {e.window.Title} on top {DateTime.Now.ToShortTimeString()}");
             //else
             //    this.NotifyMessage($"Still NotVisible { e.window.WndProcess}'s window with title {e.window.Title}");
 
@@ -101,6 +112,7 @@ The site should open in your browser", "Expired:");
         private void ScanAllWindows_Click(object sender, EventArgs e)
         {
             windowWatcher.scanAllWindows();
+            activitySimulator?.idlechecktimer_Elapsed(sender, null);
         }
 
         private void ToolStripStatusLabel1_Click(object sender, EventArgs e)
@@ -144,12 +156,15 @@ The site should open in your browser", "Expired:");
                 statusStrip1.Update();
                 statusStrip1.Refresh();
                 notifyIcon1.Visible = lastvisible;
+                //Trace.WriteLine(message);
+                //Trace.Flush();
             }
 
         }
 
         private void CheckBoxstartup_CheckedChanged(object sender, EventArgs e)
         {
+            return;
             const string ApplicationName = "OutlookRemindersOnTop";
             RegistryKey rk = Registry.CurrentUser.OpenSubKey
             ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
@@ -172,5 +187,26 @@ The site should open in your browser", "Expired:");
                 return false;
         }
 
+        private void checkBoxMonitor_CheckedChanged(object sender, EventArgs e)
+        {
+            this.activitySimulator.timerEnabled = checkBoxMonitor.Checked;
+        }
+
+        private void textBoxHours_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                this.activitySimulator.simulateActivityUntilHours = int.Parse(textBoxHours.Text);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex);
+            }
+        }
+
+        private void labelhours_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

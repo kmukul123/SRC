@@ -119,7 +119,7 @@ namespace OutlookRemindersOntop
                         }
                         else
                         {
-                            Logger.Debug($"process title matched {currTitle} \t unmatched process:{ currProcName} ");
+                            //Logger.Debug($"process title matched {currTitle} \t unmatched process:{ currProcName} ");
                         }
                     }
 

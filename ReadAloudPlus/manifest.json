@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Read Aloud Plus",
+  "version": "1.0.0",
+  "description": "Read pages aloud with customizable pauses at sentence and comma breaks, word highlighting, and per-site preferences.",
+  "permissions": ["storage", "activeTab", "scripting", "contextMenus"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["shared/settings.js", "content/reader.js"],
+      "css": ["content/reader.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Read Aloud Plus",
+    "default_popup": "popup/popup.html"
+  },
+  "options_page": "options/options.html",
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "commands": {
+    "toggle-read-aloud": {
+      "suggested_key": {
+        "default": "Alt+R"
+      },
+      "description": "Play/pause reading aloud"
+    }
+  }
+}

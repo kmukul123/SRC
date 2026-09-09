@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Read Aloud Plus — Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <h1>Read Aloud Plus</h1>
+
+    <section>
+      <h2>Global defaults</h2>
+      <label>Voice A (odd sentences) <select id="voiceA"></select></label>
+      <label>Voice B (even sentences) <select id="voiceB"></select></label>
+      <p class="muted">Reading alternates between these by sentence. Pick the same voice for both to read with just one voice.</p>
+      <label>Speed <output id="rateOut"></output>
+        <input id="rate" type="range" min="0.5" max="2" step="0.05" />
+      </label>
+      <label>Pitch <output id="pitchOut"></output>
+        <input id="pitch" type="range" min="0.5" max="2" step="0.05" />
+      </label>
+      <label>Sentence pause (ms) <input id="sentencePauseMs" type="number" min="0" max="5000" step="50" /></label>
+      <label>Comma pause (ms) <input id="commaPauseMs" type="number" min="0" max="5000" step="50" /></label>
+      <label>Other punctuation pause (ms) <input id="otherPauseMs" type="number" min="0" max="5000" step="50" /></label>
+      <label class="inline"><input id="highlight" type="checkbox" /> Highlight words while reading</label>
+      <label class="inline"><input id="jumpOnSelect" type="checkbox" /> Selecting text while reading jumps to the first selected word</label>
+      <p id="voiceHint" class="hint" hidden></p>
+      <p id="saved" class="saved" hidden>Saved</p>
+    </section>
+
+    <section>
+      <h2>Diagnostics</h2>
+      <label class="inline"><input id="debugLogging" type="checkbox" /> Log diagnostics to the console</label>
+      <p class="muted">
+        When on, the extension explains what it is doing — which text it found, where a right-click
+        resolved to, and which segment it started from. Page logs appear in DevTools (F12) →
+        <strong>Console</strong> on the page being read; background logs appear on the extensions
+        page, under <strong>service worker</strong> on the Read Aloud Plus card. Takes effect
+        immediately — no reload needed.
+      </p>
+    </section>
+
+    <section>
+      <h2>Pronunciation dictionary</h2>
+      <p class="muted">
+        Whole-word, case-insensitive. When a word matches, it's spoken as the replacement instead
+        — e.g. "SQL" → "sequel". This only changes what's spoken, not what's shown on the page.
+      </p>
+      <div class="add-dict">
+        <input id="newDictWord" type="text" placeholder="Word (e.g. SQL)" />
+        <input id="newDictPronunciation" type="text" placeholder="Pronounce as (e.g. sequel)" />
+        <button id="testDictEntry" type="button" title="Speak the replacement">▶ Test</button>
+        <button id="addDictEntry" type="button">Add</button>
+      </div>
+      <ul id="dictList"></ul>
+      <p id="noDictEntries" class="muted" hidden>No custom pronunciations yet.</p>
+    </section>
+
+    <section>
+      <h2>Per-site overrides</h2>
+      <p class="muted">Sites with their own voice, speed and pitch. Removing an override makes the site use the global defaults.</p>
+      <div class="add-site">
+        <input id="newSiteHost" type="text" placeholder="example.com" />
+        <button id="addSite">Add site override</button>
+      </div>
+      <ul id="siteList"></ul>
+      <p id="noSites" class="muted" hidden>No per-site overrides yet.</p>
+    </section>
+
+    <script src="../shared/settings.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

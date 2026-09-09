@@ -15,6 +15,12 @@ const els = {
   noSites: document.getElementById('noSites'),
   newSiteHost: document.getElementById('newSiteHost'),
   addSite: document.getElementById('addSite'),
+  dictList: document.getElementById('dictList'),
+  noDictEntries: document.getElementById('noDictEntries'),
+  newDictWord: document.getElementById('newDictWord'),
+  newDictPronunciation: document.getElementById('newDictPronunciation'),
+  testDictEntry: document.getElementById('testDictEntry'),
+  addDictEntry: document.getElementById('addDictEntry'),
 };
 const pauseEls = Object.fromEntries(FIELDS.map((id) => [id, document.getElementById(id)]));
 
@@ -52,6 +58,72 @@ function labeled(text, ...controls) {
   label.append(text, ...controls);
   return label;
 }
+
+// Speaks with the current Voice A / speed / pitch from the form above, so "Test" previews
+// pronunciations the same way the page will actually read them.
+function speakTest(text) {
+  if (!text.trim()) return;
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = Number(els.rate.value) || 1;
+  utterance.pitch = Number(els.pitch.value) || 1;
+  const voice = speechSynthesis.getVoices().find((v) => v.voiceURI === els.voiceA.value);
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang = voice.lang;
+  }
+  speechSynthesis.speak(utterance);
+}
+
+async function renderDictionary() {
+  const { global } = await ReadAloudSettings.loadSettings();
+  const entries = Object.entries(global.pronunciations || {}).sort(([a], [b]) => a.localeCompare(b));
+  els.dictList.innerHTML = '';
+  els.noDictEntries.hidden = entries.length > 0;
+
+  for (const [word, pronunciation] of entries) {
+    const li = document.createElement('li');
+
+    const text = document.createElement('span');
+    const wordEl = document.createElement('span');
+    wordEl.className = 'dict-word';
+    wordEl.textContent = word;
+    text.append(wordEl, ' → ', pronunciation);
+
+    const buttons = document.createElement('div');
+    const test = document.createElement('button');
+    test.textContent = '▶ Test';
+    test.addEventListener('click', () => speakTest(pronunciation));
+
+    const remove = document.createElement('button');
+    remove.textContent = 'Remove';
+    remove.addEventListener('click', async () => {
+      const { global: current } = await ReadAloudSettings.loadSettings();
+      const pronunciations = { ...current.pronunciations };
+      delete pronunciations[word];
+      await ReadAloudSettings.saveGlobal({ pronunciations });
+      renderDictionary();
+    });
+    buttons.append(test, remove);
+
+    li.append(text, buttons);
+    els.dictList.appendChild(li);
+  }
+}
+
+els.testDictEntry.addEventListener('click', () => speakTest(els.newDictPronunciation.value));
+
+els.addDictEntry.addEventListener('click', async () => {
+  const word = els.newDictWord.value.trim();
+  const pronunciation = els.newDictPronunciation.value.trim();
+  if (!word || !pronunciation) return;
+  const { global } = await ReadAloudSettings.loadSettings();
+  const pronunciations = { ...global.pronunciations, [word]: pronunciation };
+  await ReadAloudSettings.saveGlobal({ pronunciations });
+  els.newDictWord.value = '';
+  els.newDictPronunciation.value = '';
+  renderDictionary();
+});
 
 async function renderSites() {
   const { global, perSite } = await ReadAloudSettings.loadSettings();
@@ -149,6 +221,7 @@ async function load() {
   for (const field of FIELDS) pauseEls[field].value = global[field];
   populateVoices(global.voiceAURI, global.voiceBURI);
   renderSites();
+  renderDictionary();
 }
 
 async function persist() {

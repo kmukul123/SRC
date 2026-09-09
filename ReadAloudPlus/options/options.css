@@ -86,23 +86,32 @@ li button {
   font-weight: 600;
 }
 
-.add-site {
+.add-site,
+.add-dict {
   display: flex;
   gap: 8px;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
-.add-site input {
+.add-site input,
+.add-dict input {
   flex: 1 1 auto;
+  min-width: 120px;
 }
 
-.add-site button {
+.add-site button,
+.add-dict button {
   cursor: pointer;
   border: 1px solid rgba(128, 128, 128, 0.4);
   border-radius: 6px;
   background: transparent;
   color: inherit;
   padding: 4px 10px;
+}
+
+.dict-word {
+  font-weight: 600;
 }
 
 li.site-row {

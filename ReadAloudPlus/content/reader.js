@@ -382,6 +382,22 @@
     return speechSynthesis.getVoices().find((v) => v.voiceURI === uri) || null;
   }
 
+  // Text-only substitution — the Web Speech API has no phoneme/SSML control, so a
+  // "pronunciation" is really just speaking a different word instead. Whole-word,
+  // case-insensitive, so "SQL" matches "SQL"/"sql" but not the "SQL" inside "SQLite".
+  // Only the text handed to the utterance changes; the DOM/highlighting keeps the
+  // original word, so word-boundary sync can drift slightly within a substituted segment.
+  function applyPronunciations(text, pronunciations) {
+    const entries = Object.entries(pronunciations || {}).filter(([key]) => key.trim());
+    if (!entries.length) return text;
+    let result = text;
+    for (const [key, value] of entries) {
+      const escaped = key.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      result = result.replace(new RegExp(`\\b${escaped}\\b`, 'gi'), value);
+    }
+    return result;
+  }
+
   function speakCurrent() {
     if (!state.playing) return;
     if (state.index >= state.segments.length) {
@@ -397,7 +413,10 @@
     else if (state.settings.highlight) log(`segment ${state.index} could not be wrapped — no word highlighting`);
     log(`speak ${state.index}/${state.segments.length} (pause ${segment.pauseMs}ms after) →`, preview(segment.text));
 
-    const utterance = new SpeechSynthesisUtterance(segment.text);
+    const spokenText = applyPronunciations(segment.text, state.settings.pronunciations);
+    if (spokenText !== segment.text) log('pronunciation substitution', preview(segment.text), '→', preview(spokenText));
+
+    const utterance = new SpeechSynthesisUtterance(spokenText);
     utterance.rate = state.settings.rate;
     utterance.pitch = state.settings.pitch;
     const voice = pickVoiceFor(segment);

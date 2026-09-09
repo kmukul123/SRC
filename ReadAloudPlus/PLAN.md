@@ -28,7 +28,7 @@ Two consequences worth knowing:
 | `content/reader.css` | Word/sentence highlight styles (light + dark) |
 | `shared/settings.js` | Storage wrapper: global defaults, per-site overrides, resolution |
 | `popup/popup.{html,css,js}` | Play/pause/stop/skip transport controls + quick voice/speed/pitch |
-| `options/options.{html,css,js}` | Global defaults, pauses, diagnostics, and per-site override create/edit/remove |
+| `options/options.{html,css,js}` | Global defaults, pauses, diagnostics, pronunciation dictionary, and per-site override create/edit/remove |
 
 ## How the engine works (`content/reader.js`)
 1. **Find content** — prefers `<article>`, `<main>`, `[role=main]`, falls back to `<body>`.
@@ -50,6 +50,11 @@ Two consequences worth knowing:
    immediately re-speaks the current segment from its start with the new settings, rather than
    waiting for the next Play. (Changing these from the Options page still only applies next Play —
    the options page has no reliable way to know which tab is currently reading.)
+8. **Pronunciation dictionary** — the Web Speech API has no phoneme/SSML control, so a
+   "pronunciation" is a whole-word, case-insensitive text substitution applied only to the text
+   handed to the utterance (e.g. "SQL" → "sequel"); the on-page text and highlighting still use the
+   original word. Word-highlight sync can drift slightly within a segment that had a substitution,
+   correcting itself at the next segment.
 
 ## Installing locally to test
 
@@ -135,6 +140,7 @@ Work through these in order — each one isolates a different layer, so a failur
 - [ ] **CP12 — Graceful failures.** On `edge://settings` (a restricted page), pressing Play shows the error message in the popup rather than failing silently. On a page with no readable text, the status reads "No readable text found on this page."
 - [ ] **CP12b — Context menu.** Right-click directly on a word mid-paragraph → **Read aloud from here** starts at *that word*, not the top or the paragraph start. Right-click on padding/whitespace inside a paragraph → falls back to the paragraph's first segment. Select a passage, right-click → **Read selection aloud** reads only the selection; **Read aloud from here** starts at the first selected word and continues past the selection. **Stop reading aloud** halts playback and clears highlighting.
 - [ ] **CP12c — Select-to-jump.** While reading, double-click a word further down the page → playback restarts from that word. Select a phrase → playback jumps to its first word. Select text inside a form field or search box → playback is *not* hijacked. Untick *Selecting text jumps reading to it* → selecting text no longer affects playback (settings are read at play start, so press Stop then Play after changing it).
+- [ ] **CP12e — Pronunciation dictionary.** In Options → *Pronunciation dictionary*, add a word (e.g. `SQL` → `sequel`) and click *Test* — it speaks "sequel" using the current Voice A/speed/pitch. Play a page containing that word (any case) and confirm it's spoken as "sequel" while the on-page text still reads "SQL". Add a word that's a substring of another word already on the page (e.g. `SQL` vs `SQLite`) and confirm only the standalone word is replaced. Remove the entry and confirm the page goes back to reading the literal word.
 - [ ] **CP12d — Diagnostic logging.** Tick *Log diagnostics to the console* in the options page (no reload). On a page's DevTools console, right-click a word → **Read aloud from here** and confirm the `right-click at … / anchor … / starting at segment …` lines appear and the quoted text matches the word you clicked. Untick it and confirm the console goes quiet.
 - [ ] **CP13 — Chrome parity.** Repeat CP1, CP3, CP5 in Chrome.
 - [ ] **CP14 — Mac smoke test** (if available). Voice list populates from macOS voices; playback and highlighting work.

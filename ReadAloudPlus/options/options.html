@@ -41,6 +41,22 @@
     </section>
 
     <section>
+      <h2>Pronunciation dictionary</h2>
+      <p class="muted">
+        Whole-word, case-insensitive. When a word matches, it's spoken as the replacement instead
+        — e.g. "SQL" → "sequel". This only changes what's spoken, not what's shown on the page.
+      </p>
+      <div class="add-dict">
+        <input id="newDictWord" type="text" placeholder="Word (e.g. SQL)" />
+        <input id="newDictPronunciation" type="text" placeholder="Pronounce as (e.g. sequel)" />
+        <button id="testDictEntry" type="button" title="Speak the replacement">▶ Test</button>
+        <button id="addDictEntry" type="button">Add</button>
+      </div>
+      <ul id="dictList"></ul>
+      <p id="noDictEntries" class="muted" hidden>No custom pronunciations yet.</p>
+    </section>
+
+    <section>
       <h2>Per-site overrides</h2>
       <p class="muted">Sites with their own voice, speed and pitch. Removing an override makes the site use the global defaults.</p>
       <div class="add-site">

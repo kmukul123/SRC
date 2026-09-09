@@ -9,6 +9,7 @@ const DEFAULT_GLOBAL = {
   highlight: true,
   jumpOnSelect: true,
   debugLogging: false,
+  pronunciations: {},
 };
 
 const STORAGE_KEY = 'readAloudSettings';

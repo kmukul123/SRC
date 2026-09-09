@@ -5,17 +5,11 @@ const els = {
   rateOut: document.getElementById('rateOut'),
   pitch: document.getElementById('pitch'),
   pitchOut: document.getElementById('pitchOut'),
-  highlight: document.getElementById('highlight'),
-  jumpOnSelect: document.getElementById('jumpOnSelect'),
-  perSite: document.getElementById('perSite'),
-  host: document.getElementById('host'),
   voiceHint: document.getElementById('voiceHint'),
 };
 
-const PAUSE_FIELDS = ['sentencePauseMs', 'commaPauseMs', 'otherPauseMs'];
-const pauseEls = Object.fromEntries(PAUSE_FIELDS.map((id) => [id, document.getElementById(id)]));
-
 let hostname = '';
+let hasOverride = false;
 
 function send(payload) {
   return chrome.runtime.sendMessage({ type: 'command', payload });
@@ -54,22 +48,17 @@ function populateVoices(selectedURI) {
   }
 }
 
-async function loadSettings() {
+async function refreshFromSettings() {
   hostname = await currentHostname();
-  els.host.textContent = hostname || 'this site';
 
   const all = await ReadAloudSettings.loadSettings();
-  const hasOverride = Boolean(all.perSite[hostname]);
-  els.perSite.checked = hasOverride;
+  hasOverride = Boolean(all.perSite[hostname]);
 
   const effective = { ...all.global, ...(all.perSite[hostname] || {}) };
   els.rate.value = effective.rate;
   els.rateOut.value = `${Number(effective.rate).toFixed(2)}x`;
   els.pitch.value = effective.pitch;
   els.pitchOut.value = Number(effective.pitch).toFixed(2);
-  els.highlight.checked = effective.highlight;
-  els.jumpOnSelect.checked = effective.jumpOnSelect;
-  for (const field of PAUSE_FIELDS) pauseEls[field].value = effective[field];
   populateVoices(effective.voiceURI);
 }
 
@@ -78,19 +67,25 @@ async function persist() {
     rate: Number(els.rate.value),
     pitch: Number(els.pitch.value),
     voiceURI: els.voice.value,
-    highlight: els.highlight.checked,
-    jumpOnSelect: els.jumpOnSelect.checked,
   };
-  for (const field of PAUSE_FIELDS) patch[field] = Number(pauseEls[field].value);
 
-  if (els.perSite.checked && hostname) {
+  // If this site already has its own overrides (set via the options page), keep
+  // editing those so the quick controls actually affect what's playing here;
+  // otherwise a popup edit would silently do nothing on an overridden site.
+  if (hasOverride && hostname) {
     await ReadAloudSettings.saveForSite(hostname, patch);
   } else {
-    if (hostname) await ReadAloudSettings.clearSite(hostname);
     await ReadAloudSettings.saveGlobal(patch);
   }
   els.rateOut.value = `${patch.rate.toFixed(2)}x`;
   els.pitchOut.value = patch.pitch.toFixed(2);
+
+  // Apply voice/speed/pitch to what's currently playing, instead of only on the next Play.
+  const result = await send({ type: 'refreshSettings' });
+  if (result?.ok && result.response) {
+    const { playing, paused, index, total } = result.response;
+    if (playing && !paused) setStatus(`Reading — segment ${index + 1} of ${total}`);
+  }
 }
 
 async function command(type, label) {
@@ -117,7 +112,7 @@ document.getElementById('openOptions').addEventListener('click', (event) => {
   chrome.runtime.openOptionsPage();
 });
 
-for (const el of [els.rate, els.pitch, els.voice, els.highlight, els.jumpOnSelect, els.perSite, ...Object.values(pauseEls)]) {
+for (const el of [els.rate, els.pitch, els.voice]) {
   el.addEventListener('change', persist);
 }
 els.rate.addEventListener('input', () => {
@@ -128,4 +123,4 @@ els.pitch.addEventListener('input', () => {
 });
 
 speechSynthesis.addEventListener('voiceschanged', () => populateVoices(els.voice.value));
-loadSettings();
+refreshFromSettings();

@@ -12,6 +12,8 @@ const els = {
   saved: document.getElementById('saved'),
   siteList: document.getElementById('siteList'),
   noSites: document.getElementById('noSites'),
+  newSiteHost: document.getElementById('newSiteHost'),
+  addSite: document.getElementById('addSite'),
 };
 const pauseEls = Object.fromEntries(FIELDS.map((id) => [id, document.getElementById(id)]));
 
@@ -33,39 +35,93 @@ function populateVoices(selectedURI) {
   }
 }
 
-function describe(override) {
-  return Object.entries(override)
-    .map(([key, value]) => `${key}: ${value === '' ? 'default' : value}`)
-    .join(', ');
+function makeVoiceSelect(selectedURI) {
+  const select = document.createElement('select');
+  const voices = speechSynthesis.getVoices();
+  select.add(new Option('Browser default', ''));
+  for (const voice of voices) {
+    select.add(new Option(`${voice.name} (${voice.lang})${voice.localService ? '' : ' — online'}`, voice.voiceURI));
+  }
+  select.value = voices.some((v) => v.voiceURI === selectedURI) ? selectedURI : '';
+  return select;
+}
+
+function labeled(text, ...controls) {
+  const label = document.createElement('label');
+  label.append(text, ...controls);
+  return label;
 }
 
 async function renderSites() {
-  const { perSite } = await ReadAloudSettings.loadSettings();
+  const { global, perSite } = await ReadAloudSettings.loadSettings();
   const hosts = Object.keys(perSite).sort();
   els.siteList.innerHTML = '';
   els.noSites.hidden = hosts.length > 0;
 
   for (const host of hosts) {
+    const effective = { ...global, ...perSite[host] };
+
     const li = document.createElement('li');
-    const info = document.createElement('div');
+    li.className = 'site-row';
+
+    const header = document.createElement('div');
+    header.className = 'site-row-header';
     const name = document.createElement('strong');
     name.textContent = host;
-    const detail = document.createElement('div');
-    detail.className = 'site-detail';
-    detail.textContent = describe(perSite[host]);
-    info.append(name, detail);
-
     const remove = document.createElement('button');
     remove.textContent = 'Remove';
     remove.addEventListener('click', async () => {
       await ReadAloudSettings.clearSite(host);
       renderSites();
     });
+    header.append(name, remove);
 
-    li.append(info, remove);
+    const voice = makeVoiceSelect(effective.voiceURI);
+    voice.addEventListener('change', () => ReadAloudSettings.saveForSite(host, { voiceURI: voice.value }));
+
+    const rate = document.createElement('input');
+    rate.type = 'range';
+    rate.min = '0.5';
+    rate.max = '2';
+    rate.step = '0.05';
+    rate.value = effective.rate;
+    const rateOut = document.createElement('output');
+    rateOut.textContent = `${Number(effective.rate).toFixed(2)}x`;
+    rate.addEventListener('input', () => {
+      rateOut.textContent = `${Number(rate.value).toFixed(2)}x`;
+    });
+    rate.addEventListener('change', () => ReadAloudSettings.saveForSite(host, { rate: Number(rate.value) }));
+
+    const pitch = document.createElement('input');
+    pitch.type = 'range';
+    pitch.min = '0.5';
+    pitch.max = '2';
+    pitch.step = '0.05';
+    pitch.value = effective.pitch;
+    const pitchOut = document.createElement('output');
+    pitchOut.textContent = Number(effective.pitch).toFixed(2);
+    pitch.addEventListener('input', () => {
+      pitchOut.textContent = Number(pitch.value).toFixed(2);
+    });
+    pitch.addEventListener('change', () => ReadAloudSettings.saveForSite(host, { pitch: Number(pitch.value) }));
+
+    const controls = document.createElement('div');
+    controls.className = 'site-controls';
+    controls.append(labeled('Voice', voice), labeled('Speed', rate, rateOut), labeled('Pitch', pitch, pitchOut));
+
+    li.append(header, controls);
     els.siteList.appendChild(li);
   }
 }
+
+els.addSite.addEventListener('click', async () => {
+  const host = els.newSiteHost.value.trim().toLowerCase();
+  if (!host) return;
+  const { global } = await ReadAloudSettings.loadSettings();
+  await ReadAloudSettings.saveForSite(host, { voiceURI: global.voiceURI, rate: global.rate, pitch: global.pitch });
+  els.newSiteHost.value = '';
+  renderSites();
+});
 
 async function load() {
   const { global } = await ReadAloudSettings.loadSettings();
@@ -118,5 +174,8 @@ els.pitch.addEventListener('input', () => {
   els.pitchOut.value = Number(els.pitch.value).toFixed(2);
 });
 
-speechSynthesis.addEventListener('voiceschanged', () => populateVoices(els.voice.value));
+speechSynthesis.addEventListener('voiceschanged', () => {
+  populateVoices(els.voice.value);
+  renderSites();
+});
 load();

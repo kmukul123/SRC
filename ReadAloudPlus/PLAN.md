@@ -27,8 +27,8 @@ Two consequences worth knowing:
 | `content/reader.js` | Core engine: text extraction, segmentation, playback queue, highlighting |
 | `content/reader.css` | Word/sentence highlight styles (light + dark) |
 | `shared/settings.js` | Storage wrapper: global defaults, per-site overrides, resolution |
-| `popup/popup.{html,css,js}` | Play/pause/stop/skip controls + quick settings |
-| `options/options.{html,css,js}` | Global defaults + per-site override management |
+| `popup/popup.{html,css,js}` | Play/pause/stop/skip transport controls + quick voice/speed/pitch |
+| `options/options.{html,css,js}` | Global defaults, pauses, diagnostics, and per-site override create/edit/remove |
 
 ## How the engine works (`content/reader.js`)
 1. **Find content** — prefers `<article>`, `<main>`, `[role=main]`, falls back to `<body>`.
@@ -41,6 +41,11 @@ Two consequences worth knowing:
    with the configured pause inserted via `setTimeout` between them.
 6. **Highlight** — `boundary` events map `charIndex` → word span. If no boundary event arrives
    within 400 ms (some voices don't fire them), a rate-derived timer advances the highlight instead.
+7. **Live voice/rate/pitch changes** — `SpeechSynthesisUtterance` properties can't change once
+   speaking has started, so changing Speed/Pitch/Voice in the popup while reading cancels and
+   immediately re-speaks the current segment from its start with the new settings, rather than
+   waiting for the next Play. (Changing these from the Options page still only applies next Play —
+   the options page has no reliable way to know which tab is currently reading.)
 
 ## Installing locally to test
 
@@ -117,10 +122,10 @@ Work through these in order — each one isolates a different layer, so a failur
 - [ ] **CP4 — Word highlighting.** While reading, individual words highlight in sync with the speech and the page auto-scrolls to follow. Try both a local voice and an online/neural voice — if a voice doesn't fire `boundary` events, the timer fallback should still advance the highlight rather than freezing on word one.
 - [ ] **CP5 — Sentence pause works.** Set *Sentence pause* to `1500` ms, press Play, and confirm audibly longer gaps at full stops. Set it to `0` and confirm the gaps disappear.
 - [ ] **CP6 — Comma pause works.** Set *Comma pause* to `1200` ms and read a comma-heavy paragraph; confirm mid-sentence gaps lengthen independently of sentence pauses.
-- [ ] **CP7 — Voice / rate / pitch.** Change each; confirm the next Play uses the new voice, is audibly faster/slower, and higher/lower in pitch.
+- [ ] **CP7 — Voice / rate / pitch.** While reading, change Speed in the popup — the current segment restarts immediately, audibly faster/slower, without needing Stop/Play. Same for Pitch and Voice. Word highlighting keeps working on the restarted segment.
 - [ ] **CP8 — Transport controls.** Pause mid-sentence → speech stops; Play → resumes from the same place. Skip next/prev jumps a segment. Stop ends playback **and clears all highlighting from the page**.
 - [ ] **CP9 — DOM is restored.** After Stop, inspect the page in DevTools: no leftover `<span data-rap-wrap>` or `rap-word` elements should remain, and the visible text should be unchanged.
-- [ ] **CP10 — Per-site settings.** On site A, tick *Save these settings for this site only*, set a distinctive sentence pause, reload. Site A keeps that value; site B still shows the global default. Confirm site A is listed under **Per-site overrides** in the options page, and that removing it there reverts site A to global defaults.
+- [ ] **CP10 — Per-site settings.** In the options page, under **Per-site overrides**, type site A's hostname and click *Add site override* (it starts from the current global voice/speed/pitch). Change its voice or speed there and reload site A — it uses the override; site B still uses the global default. Confirm the popup's voice/speed/pitch controls read/write that same override when you're on site A (its *Add site override* row updates live). Remove the override in the options page — site A reverts to global defaults, and the popup on site A now edits the global settings again.
 - [ ] **CP11 — Settings persist.** Close the browser entirely, reopen, and confirm settings survived.
 - [ ] **CP12 — Graceful failures.** On `edge://settings` (a restricted page), pressing Play shows the error message in the popup rather than failing silently. On a page with no readable text, the status reads "No readable text found on this page."
 - [ ] **CP12b — Context menu.** Right-click directly on a word mid-paragraph → **Read aloud from here** starts at *that word*, not the top or the paragraph start. Right-click on padding/whitespace inside a paragraph → falls back to the paragraph's first segment. Select a passage, right-click → **Read selection aloud** reads only the selection; **Read aloud from here** starts at the first selected word and continues past the selection. **Stop reading aloud** halts playback and clears highlighting.

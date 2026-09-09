@@ -368,7 +368,9 @@
     }
 
     const segment = state.segments[state.index];
-    const wrapper = state.settings.highlight ? wrapSegment(segment) : null;
+    // A live settings change re-speaks the same segment without going through onend, so
+    // reuse the existing wrapper rather than wrapping an already-wrapped (now truncated) node.
+    const wrapper = state.settings.highlight ? state.activeSegmentEl || wrapSegment(segment) : null;
     if (wrapper) state.activeSegmentEl = wrapper;
     else if (state.settings.highlight) log(`segment ${state.index} could not be wrapped — no word highlighting`);
     log(`speak ${state.index}/${state.segments.length} (pause ${segment.pauseMs}ms after) →`, preview(segment.text));
@@ -525,6 +527,35 @@
     return status();
   }
 
+  // Voice/rate/pitch are baked into a SpeechSynthesisUtterance when it's created and can't
+  // be changed while it's speaking — so apply a live change by re-speaking the same segment
+  // from its start with the new utterance settings, instead of waiting for the next Play.
+  async function refreshSettings() {
+    const previous = state.settings;
+    state.settings = await ReadAloudSettings.resolveForSite(location.hostname);
+    debugLogging = Boolean(state.settings.debugLogging);
+
+    const shouldRestart =
+      state.playing &&
+      !state.paused &&
+      previous &&
+      (previous.rate !== state.settings.rate ||
+        previous.pitch !== state.settings.pitch ||
+        previous.voiceURI !== state.settings.voiceURI);
+
+    if (shouldRestart) {
+      log('voice/rate/pitch changed while reading — restarting the current segment with the new settings');
+      stopTimers();
+      if (state.activeWordEl) {
+        state.activeWordEl.classList.remove(HIGHLIGHT_CLASS);
+        state.activeWordEl = null;
+      }
+      speechSynthesis.cancel();
+      speakCurrent();
+    }
+    return status();
+  }
+
   function pause() {
     if (!state.playing) return status();
     state.paused = true;
@@ -602,6 +633,9 @@
       case 'status':
         sendResponse(status());
         return false;
+      case 'refreshSettings':
+        refreshSettings().then(sendResponse);
+        return true;
       default:
         return false;
     }

@@ -40,7 +40,11 @@
 
     <section>
       <h2>Per-site overrides</h2>
-      <p class="muted">Sites with their own settings. Removing an override makes the site use the global defaults.</p>
+      <p class="muted">Sites with their own voice, speed and pitch. Removing an override makes the site use the global defaults.</p>
+      <div class="add-site">
+        <input id="newSiteHost" type="text" placeholder="example.com" />
+        <button id="addSite">Add site override</button>
+      </div>
       <ul id="siteList"></ul>
       <p id="noSites" class="muted" hidden>No per-site overrides yet.</p>
     </section>

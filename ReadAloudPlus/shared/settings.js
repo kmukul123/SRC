@@ -12,25 +12,31 @@ const DEFAULT_GLOBAL = {
 
 const STORAGE_KEY = 'readAloudSettings';
 
-// storage.sync can be unavailable (managed profiles) or over quota; fall back to local.
+// storage.local is authoritative — it always works, regardless of account/sync policy.
+// storage.sync is best-effort on top of it (lets settings follow a signed-in profile),
+// but on managed profiles a sync write can silently no-op, so it must never be the only copy.
 async function readRaw() {
-  for (const area of [chrome.storage.sync, chrome.storage.local]) {
-    if (!area) continue;
-    try {
-      const result = await area.get(STORAGE_KEY);
-      if (result && result[STORAGE_KEY]) return result[STORAGE_KEY];
-    } catch {
-      continue;
-    }
+  try {
+    const local = await chrome.storage.local.get(STORAGE_KEY);
+    if (local && local[STORAGE_KEY]) return local[STORAGE_KEY];
+  } catch {
+    // ignore
+  }
+  try {
+    const synced = await chrome.storage.sync.get(STORAGE_KEY);
+    if (synced && synced[STORAGE_KEY]) return synced[STORAGE_KEY];
+  } catch {
+    // ignore
   }
   return null;
 }
 
 async function writeRaw(value) {
+  await chrome.storage.local.set({ [STORAGE_KEY]: value });
   try {
     await chrome.storage.sync.set({ [STORAGE_KEY]: value });
   } catch {
-    await chrome.storage.local.set({ [STORAGE_KEY]: value });
+    // ignore — local write above already succeeded
   }
 }
 
